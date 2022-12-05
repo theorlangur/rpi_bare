@@ -37,9 +37,18 @@ extern "C" void kernel_main()
     if (!initDisplay)
         return;
 
+    display::font::init();
+
     display::clear();
     display::show();
     Timer::delay_ms(2000);
+    display::font::draw_hex({0,0}, (uint32_t)&kernel_main);
+    display::font::draw_hex({0,8}, (uint32_t)&symTrizub);
+    display::font::draw_hex({0,16}, (uint32_t)&display::DisplayMemory);
+    display::show();
+    Timer::delay_ms(20000);
+
+    /*
     for(uint8_t i = 0; i < 16; ++i)
     {
         hex::draw_num(i * (hex::kW + 1), 1, i);
@@ -75,6 +84,7 @@ extern "C" void kernel_main()
     display::render_symbol({0,0}, symTrizub);
     display::show_part(0, 0, symTrizub.size.w, symTrizub.size.h);
     Timer::delay_ms(10000);
+    */
 
     uint8_t x = 64, y = 32;
 
