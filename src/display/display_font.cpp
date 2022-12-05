@@ -60,5 +60,7 @@ namespace display::font
             else
                 off = draw_char(off, 'a' + (val - 10));
         }
+
+        return off;
     }
 }
