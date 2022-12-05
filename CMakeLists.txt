@@ -6,10 +6,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(CMAKE_CXX_STANDARD 20)
 
 list(APPEND SRC_FILES 
-    #src/bare_main.cpp
     src/main.cpp
     src/rpi.cpp
-    src/display_driver.cpp
+    src/display/display_driver.cpp
+    src/display/display_render.cpp
     )
 
 add_executable(bare_oled ${SRC_FILES})
