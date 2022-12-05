@@ -1,0 +1,79 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "inputs": [
+        {
+            "id": "buildtype",
+            "type": "pickString",
+            "description": "Select build type",
+            "options": ["Debug", "Release"]
+        }
+    ],
+    "tasks": [
+        {
+            "label": "Clear CMake Cfg",
+            "type": "shell",
+            "command": "rm -rf build${input:buildtype} && mkdir build${input:buildtype}",
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake Bare Cfg",
+            "type": "shell",
+            "command": "cmake -H${workspaceRoot} -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare.cmake",
+            "dependsOn": "Clear CMake Cfg",
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake Normal Cfg",
+            "type": "shell",
+            "command": "cmake -H${workspaceRoot} -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../rpi_toolchain.cmake",
+            "dependsOn": "Clear CMake Cfg",
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake Build",
+            "type": "shell",
+            "command": "cmake --build build${input:buildtype} --verbose",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "CMake ReBuild",
+            "type": "shell",
+            "command": "cmake --build build${input:buildtype} --clean-first --verbose",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Make Image",
+            "type": "shell",
+            "command": "llvm-objcopy build${input:buildtype}/bare_oled -O binary build${input:buildtype}/kernel.img",
+            "problemMatcher": []
+        },
+        {
+            "label": "Push To RPI",
+            "type": "shell",
+            "command": "scp build${input:buildtype}/bare_oled orlangur@10.42.0.2:myapps/oled/",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build'n'Push To RPI",
+            "type": "shell",
+            "command": "scp build${input:buildtype}/bare_oled orlangur@10.42.0.2:myapps/oled/",
+            "problemMatcher": [],
+            "dependsOn": [
+                "CMake Build"
+            ]
+        },
+        {
+            "label": "Init gdb-server on RPI",
+            "type": "shell",
+            "command": "ssh orlangur@10.42.0.2 'cd myapps/oled && sudo gdbserver :4444 bare_oled &'",
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.10)
+
+project(bare_oled)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+set(CMAKE_CXX_STANDARD 20)
+
+list(APPEND SRC_FILES 
+    #src/bare_main.cpp
+    src/main.cpp
+    src/rpi.cpp
+    src/display_driver.cpp
+    )
+
+add_executable(bare_oled ${SRC_FILES})
+
+#target_link_libraries(bare_oled bcm2835)
