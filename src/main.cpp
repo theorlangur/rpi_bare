@@ -48,44 +48,6 @@ extern "C" void kernel_main()
     display::show();
     Timer::delay_ms(20000);
 
-    /*
-    for(uint8_t i = 0; i < 16; ++i)
-    {
-        hex::draw_num(i * (hex::kW + 1), 1, i);
-    }
-    display::show();
-    Timer::delay_ms(5000);
-    hex::draw_hex32(0, 1 + (hex::kH + 1) * 1, (uint32_t)&kernel_main);
-    hex::draw_hex32(0, 1 + ((hex::kH + 1) * 2), (uint32_t)&symTrizub);
-    hex::draw_hex32(0, 1 + ((hex::kH + 1) * 3), (uint32_t)display::DisplayMemory);
-    display::show();
-    Timer::delay_ms(10000);
-    display::render_symbol({0,30}, symTrizub);
-    display::show_part(0, 30, symTrizub.size.w, symTrizub.size.h);
-    Timer::delay_ms(20000);
-
-    display::clear_part(0, 0, 64, 8);
-    Timer::delay_ms(10000);
-    display::clear_part(0, 8, 64, 8);
-    Timer::delay_ms(10000);
-    for(int i = 0; i < 64; ++i)
-    {
-        display::DisplayMemory[i] = 0xff;
-        display::DisplayMemory[i + 128] = 0x0f;
-    }
-    display::show_part(0, 0, 64, 12);
-    Timer::delay_ms(10000);
-    display::clear_part(0, 16, 64, 8);
-    Timer::delay_ms(10000);
-    //display::clear_part(0, 0, symTrizub.size.w, symTrizub.size.h);
-    display::clear_part(0, 0, 18, 11);
-    display::show_part(0, 0, 8, 8);
-    Timer::delay_ms(5000);
-    display::render_symbol({0,0}, symTrizub);
-    display::show_part(0, 0, symTrizub.size.w, symTrizub.size.h);
-    Timer::delay_ms(10000);
-    */
-
     uint8_t x = 64, y = 32;
 
     display::clear();
@@ -101,10 +63,10 @@ extern "C" void kernel_main()
     while(true)
     {
         Timer::delay_ms(5);
-        /*if (display::is_pressed(display::Pins::KEY1))
+        if (display::is_pressed(display::Pins::KEY1))
         {
             break;
-        }*/
+        }
 
         display::clear_part(prev.x, prev.y, symTrizub.size.w, symTrizub.size.h);
         display::render_symbol(pos, symTrizub);
