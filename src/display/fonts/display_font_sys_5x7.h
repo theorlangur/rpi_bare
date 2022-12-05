@@ -102,6 +102,15 @@ namespace display::font::f5x7
         "*..**\n"
         ".**.*"
         );
+    constinit const auto sA = display::tools::CreateSymbol(
+        "..*..\n"
+        ".*.*.\n"
+        ".*.*.\n"
+        "*...*\n"
+        "*****\n"
+        "*...*\n"
+        "*...*"
+        );
     constinit const auto sb = display::tools::CreateSymbol(
         "*....\n"
         "*....\n"
@@ -111,11 +120,29 @@ namespace display::font::f5x7
         "*...*\n"
         "*.**."
         );
+    constinit const auto sB = display::tools::CreateSymbol(
+        "****.\n"
+        "*...*\n"
+        "*...*\n"
+        "****.\n"
+        "*...*\n"
+        "*...*\n"
+        "****."
+        );
     constinit const auto sc = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
         ".***.\n"
         "*...*\n"
+        "*....\n"
+        "*...*\n"
+        ".***."
+        );
+    constinit const auto sC = display::tools::CreateSymbol(
+        ".***.\n"
+        "*...*\n"
+        "*....\n"
+        "*....\n"
         "*....\n"
         "*...*\n"
         ".***."
@@ -129,6 +156,15 @@ namespace display::font::f5x7
         "*...*\n"
         ".**.*"
         );
+    constinit const auto sD = display::tools::CreateSymbol(
+        "***..\n"
+        "*..*.\n"
+        "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        "*..*.\n"
+        "***.."
+        );
     constinit const auto se = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
@@ -137,6 +173,15 @@ namespace display::font::f5x7
         "*****\n"
         "*....\n"
         ".***."
+        );
+    constinit const auto sE = display::tools::CreateSymbol(
+        "*****\n"
+        "*....\n"
+        "*....\n"
+        "*****\n"
+        "*....\n"
+        "*....\n"
+        "*****"
         );
     constinit const auto sf = display::tools::CreateSymbol(
         "..**.\n"
@@ -147,6 +192,15 @@ namespace display::font::f5x7
         ".*...\n"
         ".*..."
         );
+    constinit const auto sF = display::tools::CreateSymbol(
+        "*****\n"
+        "*....\n"
+        "*....\n"
+        "****.\n"
+        "*....\n"
+        "*....\n"
+        "*...."
+        );
     constinit const auto sg = display::tools::CreateSymbol(
         "..**.\n"
         ".*..*\n"
@@ -156,11 +210,29 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
+    constinit const auto sG = display::tools::CreateSymbol(
+        "..***\n"
+        ".*...\n"
+        "*....\n"
+        "*....\n"
+        "*..**\n"
+        "*...*\n"
+        ".****"
+        );
     constinit const auto sh = display::tools::CreateSymbol(
         "*....\n"
         "*....\n"
         "*.**.\n"
         "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        "*...*"
+        );
+    constinit const auto sH = display::tools::CreateSymbol(
+        "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        "*****\n"
         "*...*\n"
         "*...*\n"
         "*...*"
