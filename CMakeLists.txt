@@ -10,6 +10,7 @@ list(APPEND SRC_FILES
     src/rpi.cpp
     src/display/display_driver.cpp
     src/display/display_render.cpp
+    src/display/display_font.cpp
     )
 
 add_executable(bare_oled ${SRC_FILES})
