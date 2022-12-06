@@ -246,6 +246,15 @@ namespace display::font::f5x7
         "..*..\n"
         ".***."
         );
+    constinit const auto sI = display::tools::CreateSymbol(
+        ".***.\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        ".***."
+        );
     constinit const auto sj = display::tools::CreateSymbol(
         "..*..\n"
         ".....\n"
@@ -253,6 +262,15 @@ namespace display::font::f5x7
         "..*..\n"
         "..*..\n"
         "*.*..\n"
+        ".**.."
+        );
+    constinit const auto sJ = display::tools::CreateSymbol(
+        "....*\n"
+        "....*\n"
+        "....*\n"
+        "....*\n"
+        "....*\n"
+        "*..*.\n"
         ".**.."
         );
     constinit const auto sk = display::tools::CreateSymbol(
@@ -264,6 +282,15 @@ namespace display::font::f5x7
         "*.*..\n"
         "*..**"
         );
+    constinit const auto sK = display::tools::CreateSymbol(
+        "*...*\n"
+        "*..*.\n"
+        "*.*..\n"
+        "**...\n"
+        "*.*..\n"
+        "*..*.\n"
+        "*...*"
+        );
     constinit const auto sl = display::tools::CreateSymbol(
         ".**..\n"
         "..*..\n"
@@ -273,14 +300,32 @@ namespace display::font::f5x7
         "..*..\n"
         ".***."
         );
+    constinit const auto sL = display::tools::CreateSymbol(
+        "*....\n"
+        "*....\n"
+        "*....\n"
+        "*....\n"
+        "*....\n"
+        "*....\n"
+        "*****"
+        );
     constinit const auto sm = display::tools::CreateSymbol(
-        ".....\n"
-        ".....\n"
-        ".*..*\n"
-        "*.*.*\n"
-        "*.*.*\n"
-        "*.*.*\n"
-        "*.*.*"
+        ".......\n"
+        ".......\n"
+        ".*...*.\n"
+        "*.*.*.*\n"
+        "*..*..*\n"
+        "*..*..*\n"
+        "*..*..*"
+        );
+    constinit const auto sM = display::tools::CreateSymbol(
+        "*.....*\n"
+        "**...**\n"
+        "*.*.*.*\n"
+        "*.*.*.*\n"
+        "*..*..*\n"
+        "*.....*\n"
+        "*.....*"
         );
     constinit const auto sn = display::tools::CreateSymbol(
         ".....\n"
@@ -291,10 +336,28 @@ namespace display::font::f5x7
         "*...*\n"
         "*...*"
         );
+    constinit const auto sN = display::tools::CreateSymbol(
+        "*.....*\n"
+        "*.*...*\n"
+        "*..*..*\n"
+        "*..*..*\n"
+        "*...*.*\n"
+        "*...*.*\n"
+        "*.....*"
+        );
     constinit const auto so = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
         ".***.\n"
+        "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        ".***."
+        );
+    constinit const auto sO = display::tools::CreateSymbol(
+        ".***.\n"
+        "*...*\n"
+        "*...*\n"
         "*...*\n"
         "*...*\n"
         "*...*\n"
@@ -309,6 +372,15 @@ namespace display::font::f5x7
         "*....\n"
         "*...."
         );
+    constinit const auto sP = display::tools::CreateSymbol(
+        "****.\n"
+        "*...*\n"
+        "*...*\n"
+        "****.\n"
+        "*....\n"
+        "*....\n"
+        "*...."
+        );
     constinit const auto sq = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
@@ -316,6 +388,15 @@ namespace display::font::f5x7
         "*...*\n"
         ".****\n"
         "....*\n"
+        "....*"
+        );
+    constinit const auto sQ = display::tools::CreateSymbol(
+        ".***.\n"
+        "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        ".***.\n"
+        "...*.\n"
         "....*"
         );
     constinit const auto sr = display::tools::CreateSymbol(
@@ -327,13 +408,31 @@ namespace display::font::f5x7
         "*....\n"
         "*...."
         );
+    constinit const auto sR = display::tools::CreateSymbol(
+        "****.\n"
+        "*...*\n"
+        "*...*\n"
+        "****.\n"
+        "*.*..\n"
+        "*..*.\n"
+        "*...*"
+        );
     constinit const auto ss = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
         ".***.\n"
+        "*....\n"
+        ".***.\n"
+        "....*\n"
+        ".***."
+        );
+    constinit const auto sS = display::tools::CreateSymbol(
+        ".***.\n"
         "*...*\n"
-        ".**..\n"
-        "*..*.\n"
+        "*....\n"
+        ".***.\n"
+        "....*\n"
+        "*...*\n"
         ".***."
         );
     constinit const auto st = display::tools::CreateSymbol(
@@ -345,6 +444,15 @@ namespace display::font::f5x7
         "..*..\n"
         "...**"
         );
+    constinit const auto sT = display::tools::CreateSymbol(
+        "*****\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*.."
+        );
     constinit const auto su = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
@@ -353,6 +461,15 @@ namespace display::font::f5x7
         "*...*\n"
         "*...*\n"
         ".**.*"
+        );
+    constinit const auto sU = display::tools::CreateSymbol(
+        "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        "*...*\n"
+        ".***."
         );
     constinit const auto sv = display::tools::CreateSymbol(
         ".....\n"
@@ -363,6 +480,15 @@ namespace display::font::f5x7
         ".*.*.\n"
         "..*.."
         );
+    constinit const auto sV = display::tools::CreateSymbol(
+        "*.....*\n"
+        "*.....*\n"
+        ".*...*.\n"
+        ".*...*.\n"
+        "..*.*..\n"
+        "..*.*..\n"
+        "...*..."
+        );
     constinit const auto sw = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
@@ -372,6 +498,15 @@ namespace display::font::f5x7
         ".*.*.\n"
         ".*.*."
         );
+    constinit const auto sW = display::tools::CreateSymbol(
+        "*.....*\n"
+        "*.....*\n"
+        "*.....*\n"
+        "*..*..*\n"
+        "*.*.*.*\n"
+        "*.*.*.*\n"
+        ".*...*."
+        );
     constinit const auto sx = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
@@ -379,6 +514,15 @@ namespace display::font::f5x7
         ".*.*.\n"
         "..*..\n"
         ".*.*.\n"
+        "*...*"
+        );
+    constinit const auto sX = display::tools::CreateSymbol(
+        "*...*\n"
+        "*...*\n"
+        ".*.*.\n"
+        "..*..\n"
+        ".*.*.\n"
+        "*...*\n"
         "*...*"
         );
     constinit const auto sy = display::tools::CreateSymbol(
@@ -390,6 +534,15 @@ namespace display::font::f5x7
         ".*...\n"
         "*...."
         );
+    constinit const auto sY = display::tools::CreateSymbol(
+        "*...*\n"
+        "*...*\n"
+        ".*.*.\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*.."
+        );
     constinit const auto sz = display::tools::CreateSymbol(
         ".....\n"
         ".....\n"
@@ -397,6 +550,15 @@ namespace display::font::f5x7
         "...*.\n"
         "..*..\n"
         ".*...\n"
+        "*****"
+        );
+    constinit const auto sZ = display::tools::CreateSymbol(
+        "*****\n"
+        "....*\n"
+        "...*.\n"
+        "..*..\n"
+        ".*...\n"
+        "*....\n"
         "*****"
         );
     constinit const auto s_exclam = display::tools::CreateSymbol(
@@ -534,6 +696,78 @@ namespace display::font::f5x7
         ".*...\n"
         "....."
         );
+    constinit const auto s_gt = display::tools::CreateSymbol(
+        "*....\n"
+        ".**..\n"
+        "...*.\n"
+        "....*\n"
+        "...*.\n"
+        ".**..\n"
+        "*...."
+        );
+    constinit const auto s_lt = display::tools::CreateSymbol(
+        "....*\n"
+        "..**.\n"
+        ".*...\n"
+        "*....\n"
+        ".*...\n"
+        "..**.\n"
+        "....*"
+        );
+    constinit const auto s_single_quote = display::tools::CreateSymbol(
+        "..*..\n"
+        "..*..\n"
+        ".....\n"
+        ".....\n"
+        ".....\n"
+        ".....\n"
+        "....."
+        );
+    constinit const auto s_double_quote = display::tools::CreateSymbol(
+        ".*.*.\n"
+        ".*.*.\n"
+        ".....\n"
+        ".....\n"
+        ".....\n"
+        ".....\n"
+        "....."
+        );
+    constinit const auto s_percent = display::tools::CreateSymbol(
+        "**..*\n"
+        "**.*.\n"
+        "...*.\n"
+        "..*..\n"
+        ".*...\n"
+        ".*.**\n"
+        "*..**"
+        );
+    constinit const auto s_pipe = display::tools::CreateSymbol(
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*..\n"
+        "..*.."
+        );
+    constinit const auto s_slash = display::tools::CreateSymbol(
+        "....*\n"
+        "...*.\n"
+        "...*.\n"
+        "..*..\n"
+        ".*...\n"
+        ".*...\n"
+        "*...."
+        );
+    constinit const auto s_backslash = display::tools::CreateSymbol(
+        "*....\n"
+        ".*...\n"
+        ".*...\n"
+        "..*..\n"
+        "...*.\n"
+        "...*.\n"
+        "....*"
+        );
 }
 
 namespace display::font::f5x7
@@ -578,6 +812,33 @@ namespace display::font::f5x7
         _Chars['y'] = sy;
         _Chars['z'] = sz;
 
+        _Chars['A'] = sA;
+        _Chars['B'] = sB;
+        _Chars['C'] = sC;
+        _Chars['D'] = sD;
+        _Chars['E'] = sE;
+        _Chars['F'] = sF;
+        _Chars['G'] = sG;
+        _Chars['H'] = sH;
+        _Chars['I'] = sI;
+        _Chars['J'] = sJ;
+        _Chars['K'] = sK;
+        _Chars['L'] = sL;
+        _Chars['M'] = sM;
+        _Chars['N'] = sN;
+        _Chars['O'] = sO;
+        _Chars['P'] = sP;
+        _Chars['Q'] = sQ;
+        _Chars['R'] = sR;
+        _Chars['S'] = sS;
+        _Chars['T'] = sT;
+        _Chars['U'] = sU;
+        _Chars['V'] = sV;
+        _Chars['W'] = sW;
+        _Chars['X'] = sX;
+        _Chars['Y'] = sY;
+        _Chars['Z'] = sZ;
+
         _Chars['!'] = s_exclam;
         _Chars['?'] = s_quest_mark;
         _Chars['='] = s_eq;
@@ -594,5 +855,14 @@ namespace display::font::f5x7
 
         _Chars[':'] = s_colon;
         _Chars[';'] = s_semi_colon;
+
+        _Chars['<'] = s_lt;
+        _Chars['>'] = s_gt;
+        _Chars['\''] = s_single_quote;
+        _Chars['"'] = s_double_quote;
+        _Chars['|'] = s_pipe;
+        _Chars['/'] = s_slash;
+        _Chars['\\'] = s_backslash;
+        _Chars['%'] = s_percent;
     }
 }

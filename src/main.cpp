@@ -6,26 +6,7 @@
 #include "rpi_bare/rpi_cfg_bare.h"
 #include "rpi_bare/rpi_timers_bare.h"
 
-constinit const auto symSquare4x4 = display::tools::CreateSymbol(
-    ".**.\n"
-    ".**.\n"
-    ".**.\n"
-    ".**."
-    );
-
-constinit const auto symTrizub = display::tools::CreateSymbol(
-    "........*........\n"
-    ".*......*......*.\n"
-    ".**.....*.....**.\n"
-    ".*.*....*....*.*.\n"
-    ".**.....*.....**.\n"
-    ".*.*...***...*.*.\n"
-    ".*..*.*.*.*.*..*.\n"
-    ".*....*.*.*....*.\n"
-    ".******.*.******.\n"
-    ".......*.*.......\n"
-    "........*........"
-    );
+#include "display/icons/display_icons_misc.h"
 
 extern "C" void kernel_main()
 {
@@ -39,12 +20,15 @@ extern "C" void kernel_main()
 
     display::font::init();
 
+    const auto &symTrizub = display::icons::misc::symTrizub;
+
     display::clear();
     display::show();
     Timer::delay_ms(2000);
     display::font::draw_hex({0,0}, (uint32_t)&kernel_main);
     display::font::draw_hex({0,8}, (uint32_t)&symTrizub);
     display::font::draw_hex({0,16}, (uint32_t)&display::DisplayMemory);
+    display::font::draw_str({0,24}, "Hello World!");
     display::show();
     Timer::delay_ms(20000);
 
