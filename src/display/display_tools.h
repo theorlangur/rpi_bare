@@ -3,6 +3,8 @@
 
 #include "display_driver.h"
 
+#define SYMBOL(s) display::tools::CreateSymbolD<display::tools::analyze_literal(s)>(s)
+
 namespace display
 {
     namespace tools
@@ -41,12 +43,13 @@ namespace display
             return r;
         }
 
-        template<size_t N>
+        template<Dims dm>
         struct Symbol: SymbolHeader
         {
-            static constexpr size_t kTotalMemSize = N;
+            static constexpr size_t kTotalMemSize = dm.w * ((dm.h + 7)/8);
             uint8_t symData[kTotalMemSize];
 
+            template<size_t N>
             constexpr Symbol(const char (&d)[N], char zero = '.', char one='*')
             {
                 for(size_t i = 0; i < kTotalMemSize; ++i)
@@ -77,7 +80,13 @@ namespace display
         template<size_t N>
         constexpr auto CreateSymbol(const char (&d)[N], char zero = '.', char one='*')
         {
-            return Symbol<N>(d, zero, one);
+            return Symbol<Dims{N,8}>(d, zero, one);
+        }
+
+        template<Dims dm, size_t N>
+        constexpr auto CreateSymbolD(const char (&d)[N], char zero = '.', char one='*')
+        {
+            return Symbol<dm>(d, zero, one);
         }
     }
 }

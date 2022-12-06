@@ -11,6 +11,7 @@ list(APPEND SRC_FILES
     src/display/display_driver.cpp
     src/display/display_render.cpp
     src/display/display_font.cpp
+    src/display/icons/display_icons_misc.cpp
     )
 
 add_executable(bare_oled ${SRC_FILES})

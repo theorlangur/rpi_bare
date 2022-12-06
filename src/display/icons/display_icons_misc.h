@@ -1,25 +1,14 @@
-#include "../display_font.h"
+#ifndef DISPLAY_ICONS_MISC_H_
+#define DISPLAY_ICONS_MISC_H_
+
+#include "../display_tools.h"
 
 namespace display::icons::misc
 {
-    constinit const auto symSquare4x4 = display::tools::CreateSymbol(
-        ".**.\n"
-        ".**.\n"
-        ".**.\n"
-        ".**."
-        );
+    extern tools::SymbolHeader symSquare4x4;
+    extern tools::SymbolHeader symTrizub;
 
-    constinit const auto symTrizub = display::tools::CreateSymbol(
-        "........*........\n"
-        ".*......*......*.\n"
-        ".**.....*.....**.\n"
-        ".*.*....*....*.*.\n"
-        ".**.....*.....**.\n"
-        ".*.*...***...*.*.\n"
-        ".*..*.*.*.*.*..*.\n"
-        ".*....*.*.*....*.\n"
-        ".******.*.******.\n"
-        ".......*.*.......\n"
-        "........*........"
-        );
+    void init();
 }
+
+#endif

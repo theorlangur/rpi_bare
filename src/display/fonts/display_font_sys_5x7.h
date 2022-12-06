@@ -2,7 +2,7 @@
 
 namespace display::font::f5x7
 {
-    constinit const auto s0 = display::tools::CreateSymbol(
+    constinit const auto s0 = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*..**\n"
@@ -11,7 +11,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto s1 = display::tools::CreateSymbol(
+    constinit const auto s1 = SYMBOL(
         "....*\n"
         "...**\n"
         "..*.*\n"
@@ -20,7 +20,7 @@ namespace display::font::f5x7
         "....*\n"
         "....*"
         );
-    constinit const auto s2 = display::tools::CreateSymbol(
+    constinit const auto s2 = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*...*\n"
@@ -29,7 +29,7 @@ namespace display::font::f5x7
         ".*...\n"
         "*****"
         );
-    constinit const auto s3 = display::tools::CreateSymbol(
+    constinit const auto s3 = SYMBOL(
         ".***.\n"
         "*...*\n"
         "....*\n"
@@ -38,7 +38,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto s4 = display::tools::CreateSymbol(
+    constinit const auto s4 = SYMBOL(
         ".*..*\n"
         ".*..*\n"
         "*...*\n"
@@ -47,7 +47,7 @@ namespace display::font::f5x7
         "....*\n"
         "....*"
         );
-    constinit const auto s5 = display::tools::CreateSymbol(
+    constinit const auto s5 = SYMBOL(
         "*****\n"
         "*....\n"
         "*....\n"
@@ -56,7 +56,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto s6 = display::tools::CreateSymbol(
+    constinit const auto s6 = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*....\n"
@@ -65,7 +65,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto s7 = display::tools::CreateSymbol(
+    constinit const auto s7 = SYMBOL(
         "****.\n"
         "....*\n"
         "...*.\n"
@@ -74,7 +74,7 @@ namespace display::font::f5x7
         "*....\n"
         "*...."
         );
-    constinit const auto s8 = display::tools::CreateSymbol(
+    constinit const auto s8 = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*...*\n"
@@ -83,7 +83,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto s9 = display::tools::CreateSymbol(
+    constinit const auto s9 = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*...*\n"
@@ -93,7 +93,7 @@ namespace display::font::f5x7
         ".***."
         );
 
-    constinit const auto sa = display::tools::CreateSymbol(
+    constinit const auto sa = SYMBOL(
         ".....\n"
         ".....\n"
         ".....\n"
@@ -102,7 +102,7 @@ namespace display::font::f5x7
         "*..**\n"
         ".**.*"
         );
-    constinit const auto sA = display::tools::CreateSymbol(
+    constinit const auto sA = SYMBOL(
         "..*..\n"
         ".*.*.\n"
         ".*.*.\n"
@@ -111,7 +111,7 @@ namespace display::font::f5x7
         "*...*\n"
         "*...*"
         );
-    constinit const auto sb = display::tools::CreateSymbol(
+    constinit const auto sb = SYMBOL(
         "*....\n"
         "*....\n"
         "*....\n"
@@ -120,7 +120,7 @@ namespace display::font::f5x7
         "*...*\n"
         "*.**."
         );
-    constinit const auto sB = display::tools::CreateSymbol(
+    constinit const auto sB = SYMBOL(
         "****.\n"
         "*...*\n"
         "*...*\n"
@@ -129,7 +129,7 @@ namespace display::font::f5x7
         "*...*\n"
         "****."
         );
-    constinit const auto sc = display::tools::CreateSymbol(
+    constinit const auto sc = SYMBOL(
         ".....\n"
         ".....\n"
         ".***.\n"
@@ -138,7 +138,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto sC = display::tools::CreateSymbol(
+    constinit const auto sC = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*....\n"
@@ -147,7 +147,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto sd = display::tools::CreateSymbol(
+    constinit const auto sd = SYMBOL(
         "....*\n"
         "....*\n"
         "....*\n"
@@ -156,7 +156,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".**.*"
         );
-    constinit const auto sD = display::tools::CreateSymbol(
+    constinit const auto sD = SYMBOL(
         "***..\n"
         "*..*.\n"
         "*...*\n"
@@ -165,7 +165,7 @@ namespace display::font::f5x7
         "*..*.\n"
         "***.."
         );
-    constinit const auto se = display::tools::CreateSymbol(
+    constinit const auto se = SYMBOL(
         ".....\n"
         ".....\n"
         ".***.\n"
@@ -174,7 +174,7 @@ namespace display::font::f5x7
         "*....\n"
         ".***."
         );
-    constinit const auto sE = display::tools::CreateSymbol(
+    constinit const auto sE = SYMBOL(
         "*****\n"
         "*....\n"
         "*....\n"
@@ -183,7 +183,7 @@ namespace display::font::f5x7
         "*....\n"
         "*****"
         );
-    constinit const auto sf = display::tools::CreateSymbol(
+    constinit const auto sf = SYMBOL(
         "..**.\n"
         ".*..*\n"
         ".*...\n"
@@ -192,7 +192,7 @@ namespace display::font::f5x7
         ".*...\n"
         ".*..."
         );
-    constinit const auto sF = display::tools::CreateSymbol(
+    constinit const auto sF = SYMBOL(
         "*****\n"
         "*....\n"
         "*....\n"
@@ -201,7 +201,7 @@ namespace display::font::f5x7
         "*....\n"
         "*...."
         );
-    constinit const auto sg = display::tools::CreateSymbol(
+    constinit const auto sg = SYMBOL(
         "..**.\n"
         ".*..*\n"
         ".*..*\n"
@@ -210,7 +210,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto sG = display::tools::CreateSymbol(
+    constinit const auto sG = SYMBOL(
         "..***\n"
         ".*...\n"
         "*....\n"
@@ -219,7 +219,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".****"
         );
-    constinit const auto sh = display::tools::CreateSymbol(
+    constinit const auto sh = SYMBOL(
         "*....\n"
         "*....\n"
         "*.**.\n"
@@ -228,7 +228,7 @@ namespace display::font::f5x7
         "*...*\n"
         "*...*"
         );
-    constinit const auto sH = display::tools::CreateSymbol(
+    constinit const auto sH = SYMBOL(
         "*...*\n"
         "*...*\n"
         "*...*\n"
@@ -237,7 +237,7 @@ namespace display::font::f5x7
         "*...*\n"
         "*...*"
         );
-    constinit const auto si = display::tools::CreateSymbol(
+    constinit const auto si = SYMBOL(
         "..*..\n"
         ".....\n"
         ".**..\n"
@@ -246,7 +246,7 @@ namespace display::font::f5x7
         "..*..\n"
         ".***."
         );
-    constinit const auto sI = display::tools::CreateSymbol(
+    constinit const auto sI = SYMBOL(
         ".***.\n"
         "..*..\n"
         "..*..\n"
@@ -255,7 +255,7 @@ namespace display::font::f5x7
         "..*..\n"
         ".***."
         );
-    constinit const auto sj = display::tools::CreateSymbol(
+    constinit const auto sj = SYMBOL(
         "..*..\n"
         ".....\n"
         "..*..\n"
@@ -264,7 +264,7 @@ namespace display::font::f5x7
         "*.*..\n"
         ".**.."
         );
-    constinit const auto sJ = display::tools::CreateSymbol(
+    constinit const auto sJ = SYMBOL(
         "....*\n"
         "....*\n"
         "....*\n"
@@ -273,7 +273,7 @@ namespace display::font::f5x7
         "*..*.\n"
         ".**.."
         );
-    constinit const auto sk = display::tools::CreateSymbol(
+    constinit const auto sk = SYMBOL(
         "*....\n"
         "*....\n"
         "*..**\n"
@@ -282,7 +282,7 @@ namespace display::font::f5x7
         "*.*..\n"
         "*..**"
         );
-    constinit const auto sK = display::tools::CreateSymbol(
+    constinit const auto sK = SYMBOL(
         "*...*\n"
         "*..*.\n"
         "*.*..\n"
@@ -291,7 +291,7 @@ namespace display::font::f5x7
         "*..*.\n"
         "*...*"
         );
-    constinit const auto sl = display::tools::CreateSymbol(
+    constinit const auto sl = SYMBOL(
         ".**..\n"
         "..*..\n"
         "..*..\n"
@@ -300,7 +300,7 @@ namespace display::font::f5x7
         "..*..\n"
         ".***."
         );
-    constinit const auto sL = display::tools::CreateSymbol(
+    constinit const auto sL = SYMBOL(
         "*....\n"
         "*....\n"
         "*....\n"
@@ -309,7 +309,7 @@ namespace display::font::f5x7
         "*....\n"
         "*****"
         );
-    constinit const auto sm = display::tools::CreateSymbol(
+    constinit const auto sm = SYMBOL(
         ".......\n"
         ".......\n"
         ".*...*.\n"
@@ -318,7 +318,7 @@ namespace display::font::f5x7
         "*..*..*\n"
         "*..*..*"
         );
-    constinit const auto sM = display::tools::CreateSymbol(
+    constinit const auto sM = SYMBOL(
         "*.....*\n"
         "**...**\n"
         "*.*.*.*\n"
@@ -327,7 +327,7 @@ namespace display::font::f5x7
         "*.....*\n"
         "*.....*"
         );
-    constinit const auto sn = display::tools::CreateSymbol(
+    constinit const auto sn = SYMBOL(
         ".....\n"
         ".....\n"
         "*.**.\n"
@@ -336,7 +336,7 @@ namespace display::font::f5x7
         "*...*\n"
         "*...*"
         );
-    constinit const auto sN = display::tools::CreateSymbol(
+    constinit const auto sN = SYMBOL(
         "*.....*\n"
         "*.*...*\n"
         "*..*..*\n"
@@ -345,7 +345,7 @@ namespace display::font::f5x7
         "*...*.*\n"
         "*.....*"
         );
-    constinit const auto so = display::tools::CreateSymbol(
+    constinit const auto so = SYMBOL(
         ".....\n"
         ".....\n"
         ".***.\n"
@@ -354,7 +354,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto sO = display::tools::CreateSymbol(
+    constinit const auto sO = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*...*\n"
@@ -363,7 +363,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto sp = display::tools::CreateSymbol(
+    constinit const auto sp = SYMBOL(
         ".....\n"
         ".....\n"
         "****.\n"
@@ -372,7 +372,7 @@ namespace display::font::f5x7
         "*....\n"
         "*...."
         );
-    constinit const auto sP = display::tools::CreateSymbol(
+    constinit const auto sP = SYMBOL(
         "****.\n"
         "*...*\n"
         "*...*\n"
@@ -381,7 +381,7 @@ namespace display::font::f5x7
         "*....\n"
         "*...."
         );
-    constinit const auto sq = display::tools::CreateSymbol(
+    constinit const auto sq = SYMBOL(
         ".....\n"
         ".....\n"
         ".****\n"
@@ -390,7 +390,7 @@ namespace display::font::f5x7
         "....*\n"
         "....*"
         );
-    constinit const auto sQ = display::tools::CreateSymbol(
+    constinit const auto sQ = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*...*\n"
@@ -399,7 +399,7 @@ namespace display::font::f5x7
         "...*.\n"
         "....*"
         );
-    constinit const auto sr = display::tools::CreateSymbol(
+    constinit const auto sr = SYMBOL(
         ".....\n"
         ".....\n"
         "*.**.\n"
@@ -408,7 +408,7 @@ namespace display::font::f5x7
         "*....\n"
         "*...."
         );
-    constinit const auto sR = display::tools::CreateSymbol(
+    constinit const auto sR = SYMBOL(
         "****.\n"
         "*...*\n"
         "*...*\n"
@@ -417,7 +417,7 @@ namespace display::font::f5x7
         "*..*.\n"
         "*...*"
         );
-    constinit const auto ss = display::tools::CreateSymbol(
+    constinit const auto ss = SYMBOL(
         ".....\n"
         ".....\n"
         ".***.\n"
@@ -426,7 +426,7 @@ namespace display::font::f5x7
         "....*\n"
         ".***."
         );
-    constinit const auto sS = display::tools::CreateSymbol(
+    constinit const auto sS = SYMBOL(
         ".***.\n"
         "*...*\n"
         "*....\n"
@@ -435,7 +435,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto st = display::tools::CreateSymbol(
+    constinit const auto st = SYMBOL(
         "..*..\n"
         "..*..\n"
         ".***.\n"
@@ -444,7 +444,7 @@ namespace display::font::f5x7
         "..*..\n"
         "...**"
         );
-    constinit const auto sT = display::tools::CreateSymbol(
+    constinit const auto sT = SYMBOL(
         "*****\n"
         "..*..\n"
         "..*..\n"
@@ -453,7 +453,7 @@ namespace display::font::f5x7
         "..*..\n"
         "..*.."
         );
-    constinit const auto su = display::tools::CreateSymbol(
+    constinit const auto su = SYMBOL(
         ".....\n"
         ".....\n"
         "*...*\n"
@@ -462,7 +462,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".**.*"
         );
-    constinit const auto sU = display::tools::CreateSymbol(
+    constinit const auto sU = SYMBOL(
         "*...*\n"
         "*...*\n"
         "*...*\n"
@@ -471,7 +471,7 @@ namespace display::font::f5x7
         "*...*\n"
         ".***."
         );
-    constinit const auto sv = display::tools::CreateSymbol(
+    constinit const auto sv = SYMBOL(
         ".....\n"
         ".....\n"
         "*...*\n"
@@ -480,7 +480,7 @@ namespace display::font::f5x7
         ".*.*.\n"
         "..*.."
         );
-    constinit const auto sV = display::tools::CreateSymbol(
+    constinit const auto sV = SYMBOL(
         "*.....*\n"
         "*.....*\n"
         ".*...*.\n"
@@ -489,7 +489,7 @@ namespace display::font::f5x7
         "..*.*..\n"
         "...*..."
         );
-    constinit const auto sw = display::tools::CreateSymbol(
+    constinit const auto sw = SYMBOL(
         ".....\n"
         ".....\n"
         ".....\n"
@@ -498,7 +498,7 @@ namespace display::font::f5x7
         ".*.*.\n"
         ".*.*."
         );
-    constinit const auto sW = display::tools::CreateSymbol(
+    constinit const auto sW = SYMBOL(
         "*.....*\n"
         "*.....*\n"
         "*.....*\n"
@@ -507,7 +507,7 @@ namespace display::font::f5x7
         "*.*.*.*\n"
         ".*...*."
         );
-    constinit const auto sx = display::tools::CreateSymbol(
+    constinit const auto sx = SYMBOL(
         ".....\n"
         ".....\n"
         "*...*\n"
@@ -516,7 +516,7 @@ namespace display::font::f5x7
         ".*.*.\n"
         "*...*"
         );
-    constinit const auto sX = display::tools::CreateSymbol(
+    constinit const auto sX = SYMBOL(
         "*...*\n"
         "*...*\n"
         ".*.*.\n"
@@ -525,7 +525,7 @@ namespace display::font::f5x7
         "*...*\n"
         "*...*"
         );
-    constinit const auto sy = display::tools::CreateSymbol(
+    constinit const auto sy = SYMBOL(
         ".....\n"
         ".....\n"
         "*...*\n"
@@ -534,7 +534,7 @@ namespace display::font::f5x7
         ".*...\n"
         "*...."
         );
-    constinit const auto sY = display::tools::CreateSymbol(
+    constinit const auto sY = SYMBOL(
         "*...*\n"
         "*...*\n"
         ".*.*.\n"
@@ -543,7 +543,7 @@ namespace display::font::f5x7
         "..*..\n"
         "..*.."
         );
-    constinit const auto sz = display::tools::CreateSymbol(
+    constinit const auto sz = SYMBOL(
         ".....\n"
         ".....\n"
         "*****\n"
@@ -552,7 +552,7 @@ namespace display::font::f5x7
         ".*...\n"
         "*****"
         );
-    constinit const auto sZ = display::tools::CreateSymbol(
+    constinit const auto sZ = SYMBOL(
         "*****\n"
         "....*\n"
         "...*.\n"
@@ -561,7 +561,7 @@ namespace display::font::f5x7
         "*....\n"
         "*****"
         );
-    constinit const auto s_exclam = display::tools::CreateSymbol(
+    constinit const auto s_exclam = SYMBOL(
         "..*..\n"
         "..*..\n"
         "..*..\n"
@@ -570,7 +570,7 @@ namespace display::font::f5x7
         ".....\n"
         "..*.."
         );
-    constinit const auto s_quest_mark = display::tools::CreateSymbol(
+    constinit const auto s_quest_mark = SYMBOL(
         ".***.\n"
         "*...*\n"
         "...*.\n"
@@ -579,7 +579,7 @@ namespace display::font::f5x7
         ".....\n"
         "..*.."
         );
-    constinit const auto s_eq = display::tools::CreateSymbol(
+    constinit const auto s_eq = SYMBOL(
         ".....\n"
         ".....\n"
         "*****\n"
@@ -588,7 +588,7 @@ namespace display::font::f5x7
         ".....\n"
         "....."
         );
-    constinit const auto s_comma = display::tools::CreateSymbol(
+    constinit const auto s_comma = SYMBOL(
         ".....\n"
         ".....\n"
         ".....\n"
@@ -597,7 +597,7 @@ namespace display::font::f5x7
         "..**.\n"
         ".*..."
         );
-    constinit const auto s_dot = display::tools::CreateSymbol(
+    constinit const auto s_dot = SYMBOL(
         ".....\n"
         ".....\n"
         ".....\n"
@@ -606,7 +606,7 @@ namespace display::font::f5x7
         "..*..\n"
         "....."
         );
-    constinit const auto s_dash = display::tools::CreateSymbol(
+    constinit const auto s_dash = SYMBOL(
         ".....\n"
         ".....\n"
         ".....\n"
@@ -615,7 +615,7 @@ namespace display::font::f5x7
         ".....\n"
         "....."
         );
-    constinit const auto s_under = display::tools::CreateSymbol(
+    constinit const auto s_under = SYMBOL(
         ".....\n"
         ".....\n"
         ".....\n"
@@ -624,7 +624,7 @@ namespace display::font::f5x7
         ".....\n"
         "*****"
         );
-    constinit const auto s_plus = display::tools::CreateSymbol(
+    constinit const auto s_plus = SYMBOL(
         ".....\n"
         "..*..\n"
         "..*..\n"
@@ -633,7 +633,7 @@ namespace display::font::f5x7
         "..*..\n"
         "....."
         );
-    constinit const auto s_mul = display::tools::CreateSymbol(
+    constinit const auto s_mul = SYMBOL(
         ".....\n"
         "*.*.*\n"
         "..*..\n"
@@ -642,7 +642,7 @@ namespace display::font::f5x7
         "*.*.*\n"
         "....."
         );
-    constinit const auto s_sq_br_open = display::tools::CreateSymbol(
+    constinit const auto s_sq_br_open = SYMBOL(
         "**...\n"
         "*....\n"
         "*....\n"
@@ -651,7 +651,7 @@ namespace display::font::f5x7
         "*....\n"
         "**..."
         );
-    constinit const auto s_sq_br_close = display::tools::CreateSymbol(
+    constinit const auto s_sq_br_close = SYMBOL(
         "...**\n"
         "....*\n"
         "....*\n"
@@ -660,7 +660,7 @@ namespace display::font::f5x7
         "....*\n"
         "...**"
         );
-    constinit const auto s_br_open = display::tools::CreateSymbol(
+    constinit const auto s_br_open = SYMBOL(
         "..*..\n"
         ".*...\n"
         "*....\n"
@@ -669,7 +669,7 @@ namespace display::font::f5x7
         ".*...\n"
         "..*.."
         );
-    constinit const auto s_br_close = display::tools::CreateSymbol(
+    constinit const auto s_br_close = SYMBOL(
         "..*..\n"
         "...*.\n"
         "....*\n"
@@ -678,7 +678,7 @@ namespace display::font::f5x7
         "...*.\n"
         "..*.."
         );
-    constinit const auto s_colon = display::tools::CreateSymbol(
+    constinit const auto s_colon = SYMBOL(
         ".....\n"
         ".....\n"
         "..*..\n"
@@ -687,7 +687,7 @@ namespace display::font::f5x7
         ".....\n"
         "....."
         );
-    constinit const auto s_semi_colon = display::tools::CreateSymbol(
+    constinit const auto s_semi_colon = SYMBOL(
         ".....\n"
         ".....\n"
         "..*..\n"
@@ -696,7 +696,7 @@ namespace display::font::f5x7
         ".*...\n"
         "....."
         );
-    constinit const auto s_gt = display::tools::CreateSymbol(
+    constinit const auto s_gt = SYMBOL(
         "*....\n"
         ".**..\n"
         "...*.\n"
@@ -705,7 +705,7 @@ namespace display::font::f5x7
         ".**..\n"
         "*...."
         );
-    constinit const auto s_lt = display::tools::CreateSymbol(
+    constinit const auto s_lt = SYMBOL(
         "....*\n"
         "..**.\n"
         ".*...\n"
@@ -714,7 +714,7 @@ namespace display::font::f5x7
         "..**.\n"
         "....*"
         );
-    constinit const auto s_single_quote = display::tools::CreateSymbol(
+    constinit const auto s_single_quote = SYMBOL(
         "..*..\n"
         "..*..\n"
         ".....\n"
@@ -723,7 +723,7 @@ namespace display::font::f5x7
         ".....\n"
         "....."
         );
-    constinit const auto s_double_quote = display::tools::CreateSymbol(
+    constinit const auto s_double_quote = SYMBOL(
         ".*.*.\n"
         ".*.*.\n"
         ".....\n"
@@ -732,7 +732,7 @@ namespace display::font::f5x7
         ".....\n"
         "....."
         );
-    constinit const auto s_percent = display::tools::CreateSymbol(
+    constinit const auto s_percent = SYMBOL(
         "**..*\n"
         "**.*.\n"
         "...*.\n"
@@ -741,7 +741,7 @@ namespace display::font::f5x7
         ".*.**\n"
         "*..**"
         );
-    constinit const auto s_pipe = display::tools::CreateSymbol(
+    constinit const auto s_pipe = SYMBOL(
         "..*..\n"
         "..*..\n"
         "..*..\n"
@@ -750,7 +750,7 @@ namespace display::font::f5x7
         "..*..\n"
         "..*.."
         );
-    constinit const auto s_slash = display::tools::CreateSymbol(
+    constinit const auto s_slash = SYMBOL(
         "....*\n"
         "...*.\n"
         "...*.\n"
@@ -759,7 +759,7 @@ namespace display::font::f5x7
         ".*...\n"
         "*...."
         );
-    constinit const auto s_backslash = display::tools::CreateSymbol(
+    constinit const auto s_backslash = SYMBOL(
         "*....\n"
         ".*...\n"
         ".*...\n"
@@ -767,6 +767,15 @@ namespace display::font::f5x7
         "...*.\n"
         "...*.\n"
         "....*"
+        );
+    constinit const auto s_space = SYMBOL(
+        ".....\n"
+        ".....\n"
+        ".....\n"
+        ".....\n"
+        ".....\n"
+        ".....\n"
+        "....."
         );
 }
 
@@ -864,5 +873,6 @@ namespace display::font::f5x7
         _Chars['/'] = s_slash;
         _Chars['\\'] = s_backslash;
         _Chars['%'] = s_percent;
+        _Chars[' '] = s_space;
     }
 }
