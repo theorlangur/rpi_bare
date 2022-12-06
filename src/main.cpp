@@ -19,6 +19,7 @@ extern "C" void kernel_main()
         return;
 
     display::font::init();
+    display::icons::misc::init();
 
     const auto &symTrizub = display::icons::misc::symTrizub;
 
