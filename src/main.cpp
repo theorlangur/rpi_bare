@@ -24,8 +24,19 @@ extern "C" void kernel_main()
     const auto &symTrizub = display::icons::misc::symTrizub;
 
     display::clear();
+    display::render_symbol({0,0}, symTrizub, {5,2}, {7,9});
+    display::font::draw_char({10,0}, '0');
     display::show();
-    Timer::delay_ms(2000);
+    Timer::delay_ms(10000);
+    for(uint8_t y = 1; y < 8; ++y)
+    {
+        display::clear_part(0, y - 1, 7, 9);
+        display::render_symbol({0,y}, symTrizub, {5,2}, {7,9});
+        display::font::draw_char({10,0}, '0' + y);
+        display::show();
+        //display::show_part(0, y, 7, 8);
+        Timer::delay_ms(10000);
+    }
     display::font::draw_hex({0,0}, (uint32_t)&kernel_main);
     display::font::draw_hex({0,8}, (uint32_t)&symTrizub);
     display::font::draw_hex({0,16}, (uint32_t)&display::DisplayMemory);
