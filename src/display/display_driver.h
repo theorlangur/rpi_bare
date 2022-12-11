@@ -48,6 +48,7 @@ namespace display
     void set_column(uint8_t column);
     void set_point(uint8_t x, uint8_t y, bool on);
     void set_bitmap(uint8_t x, uint8_t y, const uint8_t *pData, uint8_t w, uint8_t h);
+    void set_bitmap_sub(uint8_t x, uint8_t y, const uint8_t *pData, uint8_t w, uint8_t h, uint8_t off_x, uint8_t off_y, uint8_t sub_w, uint8_t sub_h);
 
     void send_command(uint8_t v);
     void send_data(uint8_t v);

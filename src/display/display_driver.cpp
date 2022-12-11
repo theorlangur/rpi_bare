@@ -194,6 +194,79 @@ namespace display {
         }
     }
 
+    void set_bitmap_sub(uint8_t x, uint8_t y, const uint8_t *pData, uint8_t w, uint8_t h, uint8_t off_x, uint8_t off_y, uint8_t sub_w, uint8_t sub_h)
+    {
+        if (off_x >= w) return;
+        if (off_y >= h) return;
+
+        if (off_x == 0 && off_y == 0 && sub_w == w && sub_h == h)
+            return set_bitmap(x, y, pData, w, h);
+
+        if ((off_x + sub_w) > w) sub_w = w - off_x;
+        if ((off_y + sub_h) > h) sub_h = h - off_y;
+
+        uint8_t r = y / 8;
+        uint8_t endX = x + sub_w;
+        if (endX > kDisplayWidth) endX = kDisplayWidth;
+        uint8_t endY = y + sub_h;
+        if (endY > kDisplayHeight) endY = kDisplayHeight;
+        bool combinedSrc = (off_y % 8) > 0;
+        const uint8_t offYRow = off_y / 8;
+        const uint8_t remOffY = off_y % 8;
+        const uint8_t invRemOffY = 8 - remOffY;
+        const uint8_t srcEnd = off_y + sub_h;
+
+        auto getSrcByte = [&](uint8_t x, uint8_t y)
+        {
+            uint8_t src1 = pData[x + (offYRow + (y/8))*w];
+            if (combinedSrc)
+            {
+                src1 >>= remOffY;
+                const uint8_t nextByte = (y/8 + offYRow + 1);
+                const uint8_t next8Bits = nextByte*8;
+                if (next8Bits < h)
+                {
+                    src1 |= pData[x + nextByte*w] << invRemOffY;
+                    if ((next8Bits + remOffY) > srcEnd)
+                    {
+                        uint8_t extraBits = (next8Bits + remOffY) - srcEnd;
+                        src1 <<= extraBits;
+                        src1 >>= extraBits;
+                    }
+                }
+            }
+            return src1;
+        };
+        for(uint8_t iy = y; iy < endY; iy = ((iy + 8) & 0b11111000) )
+        {
+            uint8_t mask = ~((1 << (iy % 8)) - 1);
+            if (!(iy % 8) && ((iy + 8) > endY))
+                mask &= (1 << (endY % 8)) - 1;
+            uint8_t off = iy - y;
+            const uint8_t offRest8 = off % 8;
+            for(uint8_t ix = x; ix < endX; ++ix)
+            {
+                const uint8_t srcOffX = ix - x + off_x;
+                auto &b = DisplayMemory[ix + (iy/8)*kDisplayWidth];
+                b &= ~mask;//clear target bits
+                uint8_t src1 = getSrcByte(srcOffX, off);
+                src1 >>= offRest8;
+                src1 <<= iy % 8;
+                b |= mask & src1;
+
+                uint8_t nextOff = (off + 8) & 0b11111000;
+                if (offRest8 && (nextOff < sub_h))
+                {
+                    src1 = getSrcByte(srcOffX, nextOff);
+                    uint8_t bit = offRest8;
+                    src1 &= (1 << bit) - 1;
+                    src1 <<= 8 - bit;
+                    b |= mask & src1;
+                }
+            }
+        }
+    }
+
     void show()
     {
         uint8_t *pData = DisplayMemory;
