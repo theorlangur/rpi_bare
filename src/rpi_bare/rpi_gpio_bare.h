@@ -21,24 +21,6 @@ namespace rpi
         template<class RPi>
         inline BARECONSTEXPR volatile uint32_t* pudclk_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_gpio + RPi::off_gpio_pudclk); }
 
-        enum class F: uint32_t
-        {
-            In  = 0b000,
-            Out = 0b001,
-            F0  = 0b100,
-            F1  = 0b101,
-            F2  = 0b110,
-            F3  = 0b111,
-            F4  = 0b011,
-            F5  = 0b010,
-        };
-
-        enum class PUD: uint32_t
-        {
-            Off      = 0b00,
-            PullDown = 0b01, 
-            PullUp   = 0b10, 
-        };
 
         template<auto gpio, class RPi>
         struct Pin

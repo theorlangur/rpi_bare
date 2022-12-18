@@ -1,6 +1,7 @@
 #ifndef RPI_SPI_BARE_H_
 #define RPI_SPI_BARE_H_
 
+#include "rpi_bare.h"
 #include "rpi_gpio_bare.h"
 
 namespace rpi
@@ -12,22 +13,30 @@ namespace rpi
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* clk_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_spi0 + RPi::off_spi0_clk); }
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* dlen_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_spi0 + RPi::off_spi0_dlen); }
 
-        template<class RPi>
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_enabled_addr() { return aux_base_addr<RPi>() + RPi::off_aux_enables / 4; }
+
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_cntl_addr()   { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_cntl0); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_stat_addr()   { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_stat); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_peek_addr()   { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_peek); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_io_addr()     { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_io); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_txhold_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_txhold); }
+
+        template<class RPi, class pins = typename RPi::SPI0_Pins>
         struct Config
         {
             template<auto p>
             using PinT = rpi::gpio::Pin<p, RPi>;
-            using pins = typename RPi::SPI0_Pins;
 
             static void init()
             {
                 __sync_synchronize();
-                PinT<pins::CE1_N>::select(rpi::gpio::F::F0);
-                PinT<pins::CE0_N>::select(rpi::gpio::F::F0);
-                PinT<pins::MISO>::select(rpi::gpio::F::F0);
-                PinT<pins::MOSI>::select(rpi::gpio::F::F0);
+                PinT<pins::CE1_N>::select(pins::func);
+                PinT<pins::CE0_N>::select(pins::func);
+                PinT<pins::MISO>::select(pins::func);
+                PinT<pins::MOSI>::select(pins::func);
+                PinT<pins::SCLK>::select(pins::func);
                 __sync_synchronize();
-                PinT<pins::SCLK>::select(rpi::gpio::F::F0);
             }
 
             static void end()
@@ -37,8 +46,8 @@ namespace rpi
                 PinT<pins::CE0_N>::select(rpi::gpio::F::In);
                 PinT<pins::MISO>::select(rpi::gpio::F::In);
                 PinT<pins::MOSI>::select(rpi::gpio::F::In);
-                __sync_synchronize();
                 PinT<pins::SCLK>::select(rpi::gpio::F::In);
+                __sync_synchronize();
             }
         };
 
@@ -166,6 +175,116 @@ namespace rpi
                 tools::mem_barrier m;
                 auto addr = clk_base_addr<RPi>();
                 *addr = div;
+            }
+        };
+
+        template<class RPi>
+        struct ControlSPI1
+        {
+            enum class Bits : uint32_t
+            {
+                enalbeSPI1 = 1,
+
+                speed = 20,
+                speed_len = 12,
+
+                cs     = 17,
+                cs_len = 3,
+
+                post_input = 16,
+                var_cs = 15,
+                var_width = 14,
+
+                dout_hold = 12,
+                dout_hold_len=2,
+
+                enable = 11,
+                in_pol = 10,
+                clr_fifo = 9,
+                out_pol = 8,
+                clk_pol = 7,
+                ms_first = 6,
+
+                shift_len = 0,
+                shift_len_len = 6,
+
+                busy = 6,
+                rx_empty = 7,
+                tx_empty = 8,
+                tx_full = 9,
+                bits_left = 0,
+                bits_left_len = 6,
+            };
+
+            inline static uint16_t g_Speed = 0;//max
+
+            static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
+            constexpr static uint32_t g_MaxFreq = calc_spi_freq(0);
+            constexpr static uint32_t g_MinFreq = calc_spi_freq(0b01111'1111'1111);
+
+            static void set_speed_div_from_freq(uint32_t f)
+            {
+                if (f > g_MaxFreq) f = g_MaxFreq;
+                else if (f < g_MinFreq) f = g_MinFreq;
+
+                g_Speed = RPi::g_SysFreqHz / (f * 2) - 1;
+            }
+
+            template<class E>
+            friend uint32_t operator<<(E e, Bits b) { return uint32_t(e) << uint32_t(b); }
+
+            static void configure_all(
+                Chip cs = Chip::CS0, 
+                ClockPhase ph = ClockPhase::Middle, 
+                Polarity clock = Polarity::Low, 
+                Polarity chipSelectAll = Polarity::Low,
+                Polarity chipSelect0 = Polarity::Low,
+                Polarity chipSelect1 = Polarity::Low,
+                Polarity chipSelect2 = Polarity::Low
+            )
+            {
+                auto cntl0 = aux_spi1_cntl_addr<RPi>();
+                auto cntl1 = cntl0 + 1;
+
+                rpi::tools::set_bits<Bits::enalbeSPI1, 1>(aux_enabled_addr<RPi>(), 1);
+
+                *cntl0 = rpi::tools::set_bits<Bits::clr_fifo, 1>(0, 1);
+                *cntl1 = 0;
+            }
+
+            static void clear_fifo(FIFO f)
+            {
+                rpi::tools::set_bits<Bits::clr_fifo, 1>(aux_spi1_cntl_addr<RPi>(), 1);
+            }
+
+            static bool done()
+            {
+                tools::mem_barrier m;
+                return !rpi::tools::get_bits<Bits::busy, 1>(*aux_spi1_stat_addr<RPi>());
+            }
+
+            static bool can_write()
+            {
+                tools::mem_barrier m;
+                return !rpi::tools::get_bits<Bits::tx_full, 1>(*aux_spi1_stat_addr<RPi>());
+            }
+
+            static bool can_read()
+            {
+                tools::mem_barrier m;
+                return !rpi::tools::get_bits<Bits::rx_empty, 1>(*aux_spi1_stat_addr<RPi>());
+            }
+
+            static bool is_full()
+            {
+                tools::mem_barrier m;
+                return rpi::tools::get_bits<Bits::tx_full, 1>(*aux_spi1_stat_addr<RPi>());
+            }
+
+            static bool needs_reading()
+            {
+                tools::mem_barrier m;
+                return !rpi::tools::get_bits<Bits::rx_empty, 1>(*aux_spi1_stat_addr<RPi>());
             }
         };
 

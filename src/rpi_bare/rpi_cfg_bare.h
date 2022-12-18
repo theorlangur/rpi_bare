@@ -37,18 +37,49 @@ namespace rpi
         static constexpr uint32_t off_spi0_ltoh  = 0x10;
         static constexpr uint32_t off_spi0_dc    = 0x14;
 
+        static constexpr uint32_t off_aux         = 0x00215000;
+        static constexpr uint32_t off_aux_enables = 0x00000004;
+
+        static constexpr uint32_t off_aux_spi1_cntl0 = 0x00000080;
+        static constexpr uint32_t off_aux_spi1_cntl1 = 0x00000084;
+        static constexpr uint32_t off_aux_spi1_stat  = 0x00000088;
+        static constexpr uint32_t off_aux_spi1_peek  = 0x0000008c;
+        static constexpr uint32_t off_aux_spi1_io    = 0x000000a0;
+        static constexpr uint32_t off_aux_spi1_txhold= 0x000000b0;
+
         static constexpr uint32_t off_sys_timer     = 0x00003000;
         static constexpr uint32_t off_sys_timer_cs  = 0x00000000;
         static constexpr uint32_t off_sys_timer_clo = 0x00000004;
         static constexpr uint32_t off_sys_timer_chi = 0x00000008;
 
-        enum class SPI0_Pins : uint8_t
+        static constexpr uint32_t g_SysFreqHz = 250'000'000;//250MHz
+
+        struct SPI0_Pins
         {
-            CE1_N = 7,
-            CE0_N = 8,
-            MISO = 9,
-            MOSI = 10,
-            SCLK = 11,
+            enum E : uint8_t
+            {
+                CE1_N = 7,
+                CE0_N = 8,
+                MISO = 9,
+                MOSI = 10,
+                SCLK = 11,
+            };
+            constexpr static gpio::F func = gpio::F::F0;
+        };
+
+
+        struct SPI1_Pins
+        {
+            enum E : uint8_t
+            {
+                CE2_N = 16,
+                CE1_N = 17,
+                CE0_N = 18,
+                MISO = 19,
+                MOSI = 20,
+                SCLK = 21,
+            };
+            constexpr static gpio::F func = gpio::F::F4;
         };
 
         static bool init()

@@ -36,6 +36,12 @@ namespace rpi
             return clear_bits<N>(from, v) | (uint32_t(bits) << uint32_t(from));
         }
 
+        template<uint8_t N, class E>
+        constexpr void set_bits(volatile uint32_t *pFrom, uint32_t v, E bits)
+        {
+            *pFrom = set_bits<N, E>(*pFrom, v, bits);
+        }
+
         template<uint8_t N>
         constexpr uint32_t get_bits(uint32_t from, uint32_t v)
         {
@@ -55,6 +61,12 @@ namespace rpi
             return clear_bits<from, N>(v) | (uint32_t(bits) << uint32_t(from));
         }
 
+        template<auto from, uint8_t N, class E>
+        constexpr void set_bits(volatile uint32_t *pFrom, E bits)
+        {
+            *pFrom = set_bits<from, N, E>(*pFrom, bits);
+        }
+
         template<auto from, uint8_t N>
         constexpr uint32_t get_bits(uint32_t v)
         {
@@ -71,6 +83,28 @@ namespace rpi
         {
             mem_barrier() { __sync_synchronize(); }
             ~mem_barrier() { __sync_synchronize(); }
+        };
+    }
+
+    namespace gpio
+    {
+        enum class F: uint32_t
+        {
+            In  = 0b000,
+            Out = 0b001,
+            F0  = 0b100,
+            F1  = 0b101,
+            F2  = 0b110,
+            F3  = 0b111,
+            F4  = 0b011,
+            F5  = 0b010,
+        };
+
+        enum class PUD: uint32_t
+        {
+            Off      = 0b00,
+            PullDown = 0b01, 
+            PullUp   = 0b10, 
         };
     }
 }
