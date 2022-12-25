@@ -338,7 +338,8 @@ namespace rpi
                     }
                 }
 
-                while(!ctrl::done());
+                while(!ctrl::done())
+                    drain_read();
                 ctrl::set_ta(false);
             }
 
@@ -366,9 +367,9 @@ namespace rpi
                     drain_read();
                 }
 
-                while(!ctrl::done());
+                while(!ctrl::done())
+                    drain_read();
 
-                drain_read();
                 ctrl::set_ta(false);
             }
         };
