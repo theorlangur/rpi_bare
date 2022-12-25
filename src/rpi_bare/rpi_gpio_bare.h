@@ -32,7 +32,7 @@ namespace rpi
                 *addrpud = (uint32_t)p;
                 //tools::delay_at_least_cycles(150);
                 rpi::timers::Sys<RPi>::delay_microseconds(10);
-                *addrpudclk = tools::set_bits<uint32_t(gpio) % 32, 1>(0, 1);
+                *addrpudclk = tools::set_bits<uint32_t(gpio) % 32, 1>(uint32_t(0), 1);
                 rpi::timers::Sys<RPi>::delay_microseconds(10);
                 //tools::delay_at_least_cycles(150);
                 *addrpud = 0;
