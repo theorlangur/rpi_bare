@@ -143,12 +143,10 @@ namespace display {
         SPI::transfer_byte(v);
     }
 
-    void send_data(uint8_t *pData, size_t s)
+    void send_data(const uint8_t *pData, size_t s)
     {
         Pins::OLED_DC << true;
-        //SPI::send(pData, s);
-        for(size_t i = 0; i < s; ++i)
-            SPI::transfer_byte(pData[i]);
+        SPI::send(pData, s);
     }
 
     void set_point(uint8_t x, uint8_t y, bool on)
