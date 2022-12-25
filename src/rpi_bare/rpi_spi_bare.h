@@ -214,9 +214,14 @@ namespace rpi
                 tx_full = 9,
                 bits_left = 0,
                 bits_left_len = 6,
+
+                c1_keep_input = 0,
+                c1_ms_in_first = 1,
             };
 
             inline static uint16_t g_Speed = 0;//max
+            inline static Chip g_cs = Chip::CS0; 
+            inline static Polarity g_clock = Polarity::Low; 
 
             static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
             constexpr static uint32_t g_MaxFreq = calc_spi_freq(0);
@@ -243,10 +248,38 @@ namespace rpi
                 Polarity chipSelect2 = Polarity::Low
             )
             {
-                auto cntl0 = aux_spi1_cntl_addr<RPi>();
-                auto cntl1 = cntl0 + 1;
+                g_cs = cs;
+                g_clock = clock;
 
                 rpi::tools::set_bits<Bits::enalbeSPI1, 1>(aux_enabled_addr<RPi>(), 1);
+                end_transfer();
+            }
+
+            static void begin_transfer(uint8_t bits_to_transfer)
+            {
+                auto cntl0 = aux_spi1_cntl_addr<RPi>();
+                auto cntl1 = cntl0 + 1;
+                uint32_t c0 = 
+                    rpi::tools::set_bits<Bits::cs, Bits::cs_len>(0, 1 << (uint32_t)g_cs)
+                    | rpi::tools::set_bits<Bits::enable, 1>(0, 1)
+                    | rpi::tools::set_bits<Bits::ms_first, 1>(0, 1)
+                    | rpi::tools::set_bits<Bits::in_pol, 1>(0, 1)
+                    | rpi::tools::set_bits<Bits::clk_pol, 1>(0, g_clock)
+                    | rpi::tools::set_bits<Bits::speed, Bits::speed_len>(0, g_Speed)
+                    ;
+                if (bits_to_transfer == 0)//variable width
+                    rpi::tools::set_bits<Bits::var_width, 1>(c0, 1);
+                else
+                    rpi::tools::set_bits<Bits::shift_len, Bits::shift_len_len>(c0, bits_to_transfer);
+
+                *cntl0 = c0;
+                *cntl1 = rpi::tools::set_bits<Bits::c1_ms_in_first, 1>(0, 1);
+            }
+            
+            static void end_transfer()
+            {
+                auto cntl0 = aux_spi1_cntl_addr<RPi>();
+                auto cntl1 = cntl0 + 1;
 
                 *cntl0 = rpi::tools::set_bits<Bits::clr_fifo, 1>(0, 1);
                 *cntl1 = 0;
@@ -285,6 +318,82 @@ namespace rpi
             {
                 tools::mem_barrier m;
                 return !rpi::tools::get_bits<Bits::rx_empty, 1>(*aux_spi1_stat_addr<RPi>());
+            }
+        };
+        template<class RPi>
+        struct TransferSPI1
+        {
+            static uint8_t transfer_byte(uint8_t b)
+            {
+                using ctrl = ControlSPI1<RPi>;
+                ctrl::begin_transfer(8);
+                auto io = aux_spi1_io_addr<RPi>();
+                rpi::tools::set_bits<24, 8>(io, b);
+                while(!ctrl::done());
+                b = *io & 0xff;
+                ctrl::end_transfer();
+            }
+            
+            static void send(const uint8_t *pSend, uint32_t len)
+            {
+                using ctrl = ControlSPI1<RPi>;
+                auto io = aux_spi1_io_addr<RPi>();
+                auto txhold = aux_spi1_txhold_addr<RPi>();
+                ctrl::begin_transfer(0);//variable width
+                while(len)
+                {
+                    while(ctrl::is_full());
+                    uint32_t cnt = rpi::tools::min(len, uint32_t(3));
+                    uint32_t w = rpi::tools::set_bits<24, 8>(uint32_t(0), cnt * 24);
+                    for(int i = 0; i < cnt; ++i, ++pSend)
+                        w |= (*pSend) << ((2 - i) * 8);
+                    len -= cnt;
+                    if (len)
+                        *txhold = w;
+                    else
+                        *io = w;
+                    while(!ctrl::done());
+
+                    (void)*io;
+                }
+                ctrl::end_transfer();
+            }
+            
+            static void transfer(const uint8_t *pSend, uint8_t *pRecv, uint32_t len)
+            {
+                using ctrl = ControlSPI1<RPi>;
+                auto io = aux_spi1_io_addr<RPi>();
+                auto txhold = aux_spi1_txhold_addr<RPi>();
+                uint32_t tx_len = len, rx_len = len;
+                ctrl::begin_transfer(0);//variable width
+                while(tx_len || rx_len)
+                {
+                    while(ctrl::can_write() && tx_len)
+                    {
+                        uint32_t cnt = rpi::tools::min(tx_len, uint32_t(3));
+                        uint32_t w = rpi::tools::set_bits<24, 8>(uint32_t(0), cnt * 24);
+                        for(int i = 0; i < cnt; ++i, ++pSend)
+                            w |= (*pSend) << ((2 - i) * 8);
+                        tx_len -= cnt;
+                        if (len)
+                            *txhold = w;
+                        else
+                            *io = w;
+                    }
+
+                    while((ctrl::can_read() || !ctrl::done()) && rx_len)
+                    {
+                        uint32_t cnt = rpi::tools::min(rx_len, uint32_t(3));
+                        uint32_t w = *io;
+                        if (pRecv)
+                        {
+                            for(int i = 0; i < cnt; ++i, ++pRecv)
+                                *pRecv = (w >> ((2-i) * 8)) & 0xff;
+                        }
+                        rx_len -= cnt;
+                    }
+                }
+                ctrl::end_transfer();
             }
         };
 

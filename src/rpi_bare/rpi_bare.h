@@ -73,6 +73,11 @@ namespace rpi
             return (v >> uint32_t(from)) & ((uint32_t(1) << N) - 1);
         }
 
+        template<class T>
+        const T& min(const T& t1, const T& t2) { return t1 < t2 ? t1 : t2;}
+        template<class T>
+        const T& max(const T& t1, const T& t2) { return t1 > t2 ? t1 : t2;}
+
         inline void delay_at_least_cycles(int cycles)
         {
             auto before = __builtin_readcyclecounter();
