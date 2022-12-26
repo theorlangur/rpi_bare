@@ -31,6 +31,7 @@ namespace rpi
             static void init()
             {
                 __sync_synchronize();
+                PinT<pins::CE2_N>::select(pins::func);
                 PinT<pins::CE1_N>::select(pins::func);
                 PinT<pins::CE0_N>::select(pins::func);
                 PinT<pins::MISO>::select(pins::func);
@@ -42,6 +43,7 @@ namespace rpi
             static void end()
             {
                 __sync_synchronize();
+                PinT<pins::CE2_N>::select(rpi::gpio::F::In);
                 PinT<pins::CE1_N>::select(rpi::gpio::F::In);
                 PinT<pins::CE0_N>::select(rpi::gpio::F::In);
                 PinT<pins::MISO>::select(rpi::gpio::F::In);
@@ -230,7 +232,7 @@ namespace rpi
                     uint32_t shift_len    : 6 = 0; //0-5
                     uint32_t out_ms_first : 1 = 1; //6
                     uint32_t inv_clk      : 1 = 0; //7
-                    uint32_t out_rising   : 1 = 0; //8
+                    uint32_t out_rising   : 1 = 1; //8
                     uint32_t clear_fifo   : 1 = 0; //9
                     uint32_t in_rising    : 1 = 1; //10
                     uint32_t enable       : 1 = 1; //11
@@ -238,9 +240,9 @@ namespace rpi
                     uint32_t var_width    : 1 = 0; //14
                     uint32_t var_cs       : 1 = 0; //15
                     uint32_t post_input   : 1 = 0; //16
-                    uint32_t cs_0         : 1 = 0; //17
-                    uint32_t cs_1         : 1 = 0; //18
-                    uint32_t cs_2         : 1 = 0; //19
+                    uint32_t cs_0         : 1 = 1; //17
+                    uint32_t cs_1         : 1 = 1; //18
+                    uint32_t cs_2         : 1 = 1; //19
                     uint32_t speed        : 12 = 0; //20-31
                 };
             };
@@ -259,8 +261,8 @@ namespace rpi
                 };
             };
 
-            inline static Control0 g_Control0;
-            inline static Control1 g_Control1;
+            inline static Control0 g_Control0{};
+            inline static Control1 g_Control1{};
 
             static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
             constexpr static uint32_t g_MaxFreq = calc_spi_freq(0);
@@ -272,6 +274,11 @@ namespace rpi
                 else if (f < g_MinFreq) f = g_MinFreq;
 
                 g_Control0.speed = RPi::g_SysFreqHz / (f * 2) - 1;
+            }
+
+            static void set_clock_divider(uint32_t d)
+            {
+                g_Control0.speed = d;
             }
 
             template<class E>
@@ -287,7 +294,8 @@ namespace rpi
                 Polarity chipSelect2 = Polarity::Low
             )
             {
-                g_Control0 = rpi::tools::set_bits<Bits::cs, Bits::cs_len>(g_Control0, 1 << (uint32_t)cs);
+                g_Control0.m_dw32 = rpi::tools::set_bits<Bits::cs, Bits::cs_len>(g_Control0.m_dw32, (~(1 << (uint32_t)cs)) & 0x7);
+                //g_Control0.cs_2 = false;
                 g_Control0.inv_clk = (uint32_t)clock;
 
                 rpi::tools::set_bits<Bits::enalbeSPI1, 1>(aux_enabled_addr<RPi>(), 1);
@@ -312,7 +320,7 @@ namespace rpi
                 auto cntl0 = aux_spi1_cntl_addr<RPi>();
                 auto cntl1 = cntl0 + 1;
 
-                *cntl0 = rpi::tools::set_bits<Bits::clr_fifo, 1>(0, 1);
+                *cntl0 = rpi::tools::set_bits<Bits::clr_fifo, 1>(uint32_t(0), 1);
                 *cntl1 = 0;
             }
 
@@ -362,12 +370,13 @@ namespace rpi
 
             static uint8_t transfer_byte(uint8_t b)
             {
-                ctrl::begin_transfer(8);
                 auto io = aux_spi1_io_addr<RPi>();
+                ctrl::begin_transfer(8);
                 rpi::tools::set_bits<24, 8>(io, b);
                 while(!ctrl::done());
                 b = *io & 0xff;
                 ctrl::end_transfer();
+                return b;
             }
             
             static void send(const uint8_t *pSend, uint32_t len)
