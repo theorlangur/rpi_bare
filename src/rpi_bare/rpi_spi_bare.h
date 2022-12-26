@@ -79,8 +79,11 @@ namespace rpi
             All  = Tx | Rx,
         };
 
+        template<class RPi, class pins>
+        struct Control;
+
         template<class RPi>
-        struct Control
+        struct Control<RPi, typename RPi::SPI0_Pins>
         {
             enum class Bits : uint32_t
             {
@@ -179,7 +182,7 @@ namespace rpi
         };
 
         template<class RPi>
-        struct ControlSPI1
+        struct Control<RPi, typename RPi::SPI1_Pins>
         {
             enum class Bits : uint32_t
             {
@@ -219,9 +222,45 @@ namespace rpi
                 c1_ms_in_first = 1,
             };
 
-            inline static uint16_t g_Speed = 0;//max
-            inline static Chip g_cs = Chip::CS0; 
-            inline static Polarity g_clock = Polarity::Low; 
+            union Control0
+            {
+                uint32_t m_dw32;
+                struct
+                {
+                    uint32_t shift_len    : 6 = 0; //0-5
+                    uint32_t out_ms_first : 1 = 1; //6
+                    uint32_t inv_clk      : 1 = 0; //7
+                    uint32_t out_rising   : 1 = 0; //8
+                    uint32_t clear_fifo   : 1 = 0; //9
+                    uint32_t in_rising    : 1 = 1; //10
+                    uint32_t enable       : 1 = 1; //11
+                    uint32_t dout_hold_t  : 2 = 0; //12-13
+                    uint32_t var_width    : 1 = 0; //14
+                    uint32_t var_cs       : 1 = 0; //15
+                    uint32_t post_input   : 1 = 0; //16
+                    uint32_t cs_0         : 1 = 0; //17
+                    uint32_t cs_1         : 1 = 0; //18
+                    uint32_t cs_2         : 1 = 0; //19
+                    uint32_t speed        : 12 = 0; //20-31
+                };
+            };
+
+            union Control1
+            {
+                uint32_t m_dw32;
+                struct
+                {
+                    uint32_t keep_input    : 1 = 0; //0
+                    uint32_t in_ms_first   : 1 = 1; //1
+                    uint32_t unused        : 4 = 0; //2-5
+                    uint32_t done_irq      : 1 = 0; //6
+                    uint32_t tx_empty      : 1 = 0; //7
+                    uint32_t cs_high       : 3 = 0; //8-10
+                };
+            };
+
+            inline static Control0 g_Control0;
+            inline static Control1 g_Control1;
 
             static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
             constexpr static uint32_t g_MaxFreq = calc_spi_freq(0);
@@ -232,7 +271,7 @@ namespace rpi
                 if (f > g_MaxFreq) f = g_MaxFreq;
                 else if (f < g_MinFreq) f = g_MinFreq;
 
-                g_Speed = RPi::g_SysFreqHz / (f * 2) - 1;
+                g_Control0.speed = RPi::g_SysFreqHz / (f * 2) - 1;
             }
 
             template<class E>
@@ -248,8 +287,8 @@ namespace rpi
                 Polarity chipSelect2 = Polarity::Low
             )
             {
-                g_cs = cs;
-                g_clock = clock;
+                g_Control0 = rpi::tools::set_bits<Bits::cs, Bits::cs_len>(g_Control0, 1 << (uint32_t)cs);
+                g_Control0.inv_clk = (uint32_t)clock;
 
                 rpi::tools::set_bits<Bits::enalbeSPI1, 1>(aux_enabled_addr<RPi>(), 1);
                 end_transfer();
@@ -259,21 +298,13 @@ namespace rpi
             {
                 auto cntl0 = aux_spi1_cntl_addr<RPi>();
                 auto cntl1 = cntl0 + 1;
-                uint32_t c0 = 
-                    rpi::tools::set_bits<Bits::cs, Bits::cs_len>(0, 1 << (uint32_t)g_cs)
-                    | rpi::tools::set_bits<Bits::enable, 1>(0, 1)
-                    | rpi::tools::set_bits<Bits::ms_first, 1>(0, 1)
-                    | rpi::tools::set_bits<Bits::in_pol, 1>(0, 1)
-                    | rpi::tools::set_bits<Bits::clk_pol, 1>(0, g_clock)
-                    | rpi::tools::set_bits<Bits::speed, Bits::speed_len>(0, g_Speed)
-                    ;
                 if (bits_to_transfer == 0)//variable width
-                    rpi::tools::set_bits<Bits::var_width, 1>(c0, 1);
+                    g_Control0.var_width = 1;
                 else
-                    rpi::tools::set_bits<Bits::shift_len, Bits::shift_len_len>(c0, bits_to_transfer);
+                    g_Control0.shift_len = bits_to_transfer;
 
-                *cntl0 = c0;
-                *cntl1 = rpi::tools::set_bits<Bits::c1_ms_in_first, 1>(0, 1);
+                *cntl0 = g_Control0.m_dw32;
+                *cntl1 = g_Control1.m_dw32;
             }
             
             static void end_transfer()
@@ -320,12 +351,17 @@ namespace rpi
                 return !rpi::tools::get_bits<Bits::rx_empty, 1>(*aux_spi1_stat_addr<RPi>());
             }
         };
+
+        template<class RPi, class pins>
+        struct Transfer;
+
         template<class RPi>
-        struct TransferSPI1
+        struct Transfer<RPi, typename RPi::SPI1_Pins>
         {
+            using ctrl = Control<RPi, typename RPi::SPI1_Pins>;
+
             static uint8_t transfer_byte(uint8_t b)
             {
-                using ctrl = ControlSPI1<RPi>;
                 ctrl::begin_transfer(8);
                 auto io = aux_spi1_io_addr<RPi>();
                 rpi::tools::set_bits<24, 8>(io, b);
@@ -336,7 +372,6 @@ namespace rpi
             
             static void send(const uint8_t *pSend, uint32_t len)
             {
-                using ctrl = ControlSPI1<RPi>;
                 auto io = aux_spi1_io_addr<RPi>();
                 auto txhold = aux_spi1_txhold_addr<RPi>();
                 ctrl::begin_transfer(0);//variable width
@@ -361,7 +396,6 @@ namespace rpi
             
             static void transfer(const uint8_t *pSend, uint8_t *pRecv, uint32_t len)
             {
-                using ctrl = ControlSPI1<RPi>;
                 auto io = aux_spi1_io_addr<RPi>();
                 auto txhold = aux_spi1_txhold_addr<RPi>();
                 uint32_t tx_len = len, rx_len = len;
@@ -398,11 +432,11 @@ namespace rpi
         };
 
         template<class RPi>
-        struct Transfer
+        struct Transfer<RPi, typename RPi::SPI0_Pins>
         {
+            using ctrl = Control<RPi, typename RPi::SPI0_Pins>;
             static uint8_t transfer_byte(uint8_t b)
             {
-                using ctrl = Control<RPi>;
                 auto fifo = fifo_base_addr<RPi>();
 
                 tools::mem_barrier m;
@@ -422,7 +456,6 @@ namespace rpi
 
             static void transfer(const uint8_t *pSend, uint8_t *pRecv, uint32_t len)
             {
-                using ctrl = Control<RPi>;
                 auto fifo = fifo_base_addr<RPi>();
 
                 tools::mem_barrier m;
@@ -454,14 +487,12 @@ namespace rpi
 
             static void drain_read()
             {
-                using ctrl = Control<RPi>;
                 while(ctrl::can_read())
                     (void) *fifo_base_addr<RPi>();
             }
 
             static void send(const uint8_t *pSend, uint32_t len)
             {
-                using ctrl = Control<RPi>;
                 auto fifo = fifo_base_addr<RPi>();
 
                 tools::mem_barrier m;

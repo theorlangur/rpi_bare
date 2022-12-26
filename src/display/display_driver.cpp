@@ -9,7 +9,7 @@ namespace display {
     using RPiPin = rpi::gpio::PinBplus<P>;
     using Timer = rpi::timers::Sys<rpi::RPiBplus>;
     using PinRT = rpi::gpio::PinRT<rpi::RPiBplus>;
-    using SPI = rpi::spi::Transfer<rpi::RPiBplus>;
+    using SPI = rpi::spi::Transfer<rpi::RPiBplus, rpi::RPiBplus::SPI0_Pins>;
 
     uint8_t DisplayMemory[kDisplayMemorySize]={0};
 

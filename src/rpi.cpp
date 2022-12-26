@@ -6,15 +6,15 @@
 namespace {
     bool init_spi()
     {        
-        rpi::spi::Config<rpi::RPiBplus>::init();
-        rpi::spi::Control<rpi::RPiBplus>::configure_all();
-        rpi::spi::Control<rpi::RPiBplus>::set_clock_divider(128);
+        rpi::spi::Config<rpi::RPiBplus, rpi::RPiBplus::SPI0_Pins>::init();
+        rpi::spi::Control<rpi::RPiBplus, rpi::RPiBplus::SPI0_Pins>::configure_all();
+        rpi::spi::Control<rpi::RPiBplus, rpi::RPiBplus::SPI0_Pins>::set_clock_divider(128);
         return true;
     }
 
     void finish_spi()
     {
-        rpi::spi::Config<rpi::RPiBplus>::end();
+        rpi::spi::Config<rpi::RPiBplus, rpi::RPiBplus::SPI0_Pins>::end();
     }
 }
 
