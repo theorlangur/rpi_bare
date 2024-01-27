@@ -12,6 +12,14 @@
             "cwd": "${workspaceFolder}",
             "targetCreateCommands": ["target create ${workspaceFolder}/buildDebug/bare_oled"],
             "processCreateCommands": ["gdb-remote 10.42.0.2:4444"],
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug PC",
+            "program": "${workspaceFolder}/buildDebug/bare_oled",
+            "args": [],
+            "cwd": "${workspaceFolder}",
         }
     ]
 }

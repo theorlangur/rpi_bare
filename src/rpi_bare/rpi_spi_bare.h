@@ -8,19 +8,28 @@ namespace rpi
 {
     namespace spi
     {
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* cs_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_spi0 + RPi::off_spi0_cs); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* fifo_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_spi0 + RPi::off_spi0_fifo); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* clk_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_spi0 + RPi::off_spi0_clk); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* dlen_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_spi0 + RPi::off_spi0_dlen); }
+#if defined(PI_BARE_FAKE)
+        extern uint32_t spi0_base[32*1024];
+        extern uint32_t aux_base[32*1024];
 
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* spi0_base_addr() { return (volatile uint32_t*)spi0_base; }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_base_addr() { return (volatile uint32_t*)aux_base; }
+#else
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* spi0_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_spi0); }
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux); }
+#endif
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* cs_base_addr() { return (volatile uint32_t*)(spi0_base_addr<RPi>() + RPi::off_spi0_cs / 4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* fifo_base_addr() { return (volatile uint32_t*)(spi0_base_addr<RPi>() + RPi::off_spi0_fifo/4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* clk_base_addr() { return (volatile uint32_t*)(spi0_base_addr<RPi>() + RPi::off_spi0_clk/4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* dlen_base_addr() { return (volatile uint32_t*)(spi0_base_addr<RPi>() + RPi::off_spi0_dlen/4); }
+
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_enabled_addr() { return aux_base_addr<RPi>() + RPi::off_aux_enables / 4; }
 
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_cntl_addr()   { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_cntl0); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_stat_addr()   { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_stat); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_peek_addr()   { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_peek); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_io_addr()     { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_io); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_txhold_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_aux + RPi::off_aux_spi1_txhold); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_cntl_addr()   { return (volatile uint32_t*)(aux_base_addr<RPi>() + RPi::off_aux_spi1_cntl0 / 4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_stat_addr()   { return (volatile uint32_t*)(aux_base_addr<RPi>() + RPi::off_aux_spi1_stat/4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_peek_addr()   { return (volatile uint32_t*)(aux_base_addr<RPi>() + RPi::off_aux_spi1_peek/4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_io_addr()     { return (volatile uint32_t*)(aux_base_addr<RPi>() + RPi::off_aux_spi1_io/4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_txhold_addr() { return (volatile uint32_t*)(aux_base_addr<RPi>() + RPi::off_aux_spi1_txhold/4); }
 
         template<class RPi, class pins = typename RPi::SPI0_Pins>
         struct Config

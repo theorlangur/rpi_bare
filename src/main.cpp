@@ -43,9 +43,9 @@ extern "C" void kernel_main()
         //display::show_part(0, y, 7, 8);
         Timer::delay_ms(10000);
     }
-    display::font::draw_hex({0,0}, (uint32_t)&kernel_main);
-    display::font::draw_hex({0,8}, (uint32_t)&symTrizub);
-    display::font::draw_hex({0,16}, (uint32_t)&display::DisplayMemory);
+    display::font::draw_hex({0,0}, (uint32_t)(size_t)&kernel_main);
+    display::font::draw_hex({0,8}, (uint32_t)(size_t)&symTrizub);
+    display::font::draw_hex({0,16}, (uint32_t)(size_t)&display::DisplayMemory);
     display::font::draw_str({0,24}, "Hello World!");
     display::show();
     Timer::delay_ms(20000);
@@ -85,7 +85,7 @@ extern "C" void kernel_main()
     }
 }
 
-#ifndef PI_BARE
+#if !defined(PI_BARE) || defined(PI_BARE_FAKE)
 int main()
 {
     kernel_main();

@@ -32,6 +32,13 @@
             "problemMatcher": []
         },
         {
+            "label": "CMake PC Cfg",
+            "type": "shell",
+            "command": "cmake -H${workspaceRoot} -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare_fake_pc.cmake",
+            "dependsOn": "Clear CMake Cfg",
+            "problemMatcher": []
+        },
+        {
             "label": "CMake Build",
             "type": "shell",
             "command": "cmake --build build${input:buildtype} --verbose",

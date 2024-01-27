@@ -8,18 +8,27 @@ namespace rpi
 {
     namespace gpio
     {
+#if defined(PI_BARE_FAKE)
+        extern uint32_t gpio_base[32 * 1024];
+
         template<class RPi>
-        inline BARECONSTEXPR volatile uint32_t* fsel_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_gpio + RPi::off_gpio_fsel0); }
+        inline BARECONSTEXPR volatile uint32_t* gpio_base_addr() { return (volatile uint32_t*)(gpio_base); }
+#else
         template<class RPi>
-        inline BARECONSTEXPR volatile uint32_t* set_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_gpio + RPi::off_gpio_set0); }
+        inline BARECONSTEXPR volatile uint32_t* gpio_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_gpio); }
+#endif
         template<class RPi>
-        inline BARECONSTEXPR volatile uint32_t* clr_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_gpio + RPi::off_gpio_clr0); }
+        inline BARECONSTEXPR volatile uint32_t* fsel_base_addr() { return (volatile uint32_t*)(gpio_base_addr<RPi>() + RPi::off_gpio_fsel0/4); }
         template<class RPi>
-        inline BARECONSTEXPR volatile uint32_t* lev_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_gpio + RPi::off_gpio_lev0); }
+        inline BARECONSTEXPR volatile uint32_t* set_base_addr() { return (volatile uint32_t*)(gpio_base_addr<RPi>() + RPi::off_gpio_set0/4); }
         template<class RPi>
-        inline BARECONSTEXPR volatile uint32_t* pud_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_gpio + RPi::off_gpio_pud); }
+        inline BARECONSTEXPR volatile uint32_t* clr_base_addr() { return (volatile uint32_t*)(gpio_base_addr<RPi>() + RPi::off_gpio_clr0/4); }
         template<class RPi>
-        inline BARECONSTEXPR volatile uint32_t* pudclk_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_gpio + RPi::off_gpio_pudclk); }
+        inline BARECONSTEXPR volatile uint32_t* lev_base_addr() { return (volatile uint32_t*)(gpio_base_addr<RPi>() + RPi::off_gpio_lev0/4); }
+        template<class RPi>
+        inline BARECONSTEXPR volatile uint32_t* pud_base_addr() { return (volatile uint32_t*)(gpio_base_addr<RPi>() + RPi::off_gpio_pud/4); }
+        template<class RPi>
+        inline BARECONSTEXPR volatile uint32_t* pudclk_base_addr() { return (volatile uint32_t*)(gpio_base_addr<RPi>() + RPi::off_gpio_pudclk/4); }
 
 
         template<auto gpio, class RPi>
