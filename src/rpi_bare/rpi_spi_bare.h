@@ -310,7 +310,6 @@ namespace rpi
             )
             {
                 g_Control0.m_dw32 = rpi::tools::set_bits<Bits::cs, Bits::cs_len>(g_Control0.m_dw32, (~(1 << (uint32_t)cs)) & 0x7);
-                //g_Control0.m_bits.cs_2 = false;
                 g_Control0.m_bits.inv_clk = (uint32_t)clock;
 
                 rpi::tools::set_bits<Bits::enalbeSPI1, 1>(aux_enabled_addr<RPi>(), 1);
