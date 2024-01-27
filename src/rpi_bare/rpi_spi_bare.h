@@ -278,7 +278,7 @@ namespace rpi
             static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
             constexpr static uint32_t g_MaxFreq = calc_spi_freq(0);
             constexpr static uint32_t g_MinFreq = calc_spi_freq(0b01111'1111'1111);
-            static constexpr uint16_t calc_spi_divider(uint16_t f) { return (RPi::g_SysFreqHz + f - 1) / f;}
+            static constexpr uint16_t calc_spi_divider(uint32_t f) { return (RPi::g_SysFreqHz + f - 1) / f;}
             constexpr static uint16_t g_MaxSpeedDivider = 0xfff;
 
             static void set_speed_div_from_freq(uint32_t f)
