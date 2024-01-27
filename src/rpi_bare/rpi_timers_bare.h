@@ -7,9 +7,16 @@ namespace rpi
 {
     namespace timers
     {
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* cs_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_sys_timer + RPi::off_sys_timer_cs); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* lo_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_sys_timer + RPi::off_sys_timer_clo); }
-        template<class RPi> inline BARECONSTEXPR volatile uint32_t* hi_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_sys_timer + RPi::off_sys_timer_chi); }
+#if defined(PI_BARE_FAKE)
+        extern uint32_t sys_timer_base[1024];
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* sys_timer_base_addr() { return (volatile uint32_t*)sys_timer_base; }
+#else
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* sys_timer_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_sys_timer); }
+#endif
+
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* cs_base_addr() { return (volatile uint32_t*)(sys_timer_base_addr<RPi>() + RPi::off_sys_timer_cs/4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* lo_base_addr() { return (volatile uint32_t*)(sys_timer_base_addr<RPi>() + RPi::off_sys_timer_clo/4); }
+        template<class RPi> inline BARECONSTEXPR volatile uint32_t* hi_base_addr() { return (volatile uint32_t*)(sys_timer_base_addr<RPi>() + RPi::off_sys_timer_chi/4); }
 
         template<class RPi>
         struct Sys

@@ -22,6 +22,13 @@ namespace rpi
         uint32_t aux_base[32*1024];
     }
 }
+namespace rpi
+{
+    namespace timers
+    {
+        uint32_t sys_timer_base[1024];
+    }
+}
 #endif
 
 namespace {
