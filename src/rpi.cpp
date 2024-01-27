@@ -37,8 +37,8 @@ namespace {
         if constexpr (std::is_same_v<SPI_TO_USE, rpi::RPiBplus::SPI1_Pins>)
         {
             rpi::spi::Config<rpi::RPiBplus, rpi::RPiBplus::SPI1_Pins>::init();
-            //rpi::spi::Control<rpi::RPiBplus, rpi::RPiBplus::SPI1_Pins>::set_clock_divider(128);
-            rpi::spi::Control<rpi::RPiBplus, rpi::RPiBplus::SPI1_Pins>::set_speed_div_from_freq(1000'000);
+            rpi::spi::Control<rpi::RPiBplus, rpi::RPiBplus::SPI1_Pins>::set_clock_divider(128);
+            //rpi::spi::Control<rpi::RPiBplus, rpi::RPiBplus::SPI1_Pins>::set_speed_div_from_freq(1000'000);
             rpi::spi::Control<rpi::RPiBplus, rpi::RPiBplus::SPI1_Pins>::configure_all(rpi::spi::Chip::CS2);
         }else
         {
