@@ -269,13 +269,17 @@ namespace rpi
             static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
             constexpr static uint32_t g_MaxFreq = calc_spi_freq(0);
             constexpr static uint32_t g_MinFreq = calc_spi_freq(0b01111'1111'1111);
+            static constexpr uint16_t calc_spi_divider(uint16_t f) { return (RPi::g_SysFreqHz + f - 1) / f;}
+            constexpr static uint16_t g_MaxSpeedDivider = 0xfff;
 
             static void set_speed_div_from_freq(uint32_t f)
             {
                 if (f > g_MaxFreq) f = g_MaxFreq;
                 else if (f < g_MinFreq) f = g_MinFreq;
 
-                g_Control0.speed = RPi::g_SysFreqHz / (f * 2) - 1;
+                auto s = calc_spi_divider(f * 2);
+                if (s > g_MaxSpeedDivider) s = g_MaxSpeedDivider;
+                g_Control0.speed = s;
             }
 
             static void set_clock_divider(uint32_t d)
@@ -322,8 +326,8 @@ namespace rpi
                 auto cntl0 = aux_spi1_cntl_addr<RPi>();
                 auto cntl1 = cntl0 + 1;
 
-                *cntl0 = rpi::tools::set_bits<Bits::clr_fifo, 1>(uint32_t(0), 1);
                 *cntl1 = 0;
+                *cntl0 = rpi::tools::set_bits<Bits::clr_fifo, 1>(uint32_t(0), 1);
             }
 
             static void clear_fifo(FIFO f)
