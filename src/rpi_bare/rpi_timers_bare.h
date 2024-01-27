@@ -34,11 +34,18 @@ namespace rpi
                 return uint64_t(hi) << 32 | lo;
             }
 
+#if defined(PI_BARE_FAKE)
+            static void delay_microseconds(uint64_t us)
+            {
+                //dummy
+            }
+#else
             static void delay_microseconds(uint64_t us)
             {
                 uint64_t n = now();
                 while((now() - n) < us);
             }
+#endif
 
             static void delay_ms(uint64_t ms)
             {
