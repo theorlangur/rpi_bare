@@ -20,7 +20,7 @@ extern "C" void kernel_main()
 
     display::font::init();
     display::icons::misc::init();
-    Timer::delay_ms(10000);
+    //Timer::delay_ms(10000);
 
     const auto &symTrizub = display::icons::misc::symTrizub;
 
