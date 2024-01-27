@@ -31,7 +31,7 @@ namespace rpi
             static void init()
             {
                 __sync_synchronize();
-                PinT<pins::CE2_N>::select(pins::func);
+                //PinT<pins::CE2_N>::select(pins::func);
                 PinT<pins::CE1_N>::select(pins::func);
                 PinT<pins::CE0_N>::select(pins::func);
                 PinT<pins::MISO>::select(pins::func);
@@ -43,7 +43,7 @@ namespace rpi
             static void end()
             {
                 __sync_synchronize();
-                PinT<pins::CE2_N>::select(rpi::gpio::F::In);
+                //PinT<pins::CE2_N>::select(rpi::gpio::F::In);
                 PinT<pins::CE1_N>::select(rpi::gpio::F::In);
                 PinT<pins::CE0_N>::select(rpi::gpio::F::In);
                 PinT<pins::MISO>::select(rpi::gpio::F::In);
