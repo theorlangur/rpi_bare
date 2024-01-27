@@ -237,8 +237,7 @@ namespace rpi
 
             union Control0
             {
-                uint32_t m_dw32;
-                struct
+                struct Bits
                 {
                     uint32_t shift_len    : 6 = 0; //0-5
                     uint32_t out_ms_first : 1 = 1; //6
@@ -255,13 +254,13 @@ namespace rpi
                     uint32_t cs_1         : 1 = 1; //18
                     uint32_t cs_2         : 1 = 1; //19
                     uint32_t speed        : 12 = 0; //20-31
-                };
+                }m_bits{};
+                uint32_t m_dw32;
             };
 
             union Control1
             {
-                uint32_t m_dw32;
-                struct
+                struct Bits
                 {
                     uint32_t keep_input    : 1 = 0; //0
                     uint32_t in_ms_first   : 1 = 1; //1
@@ -269,11 +268,12 @@ namespace rpi
                     uint32_t done_irq      : 1 = 0; //6
                     uint32_t tx_empty      : 1 = 0; //7
                     uint32_t cs_high       : 3 = 0; //8-10
-                };
+                }m_bits{};
+                uint32_t m_dw32;
             };
 
-            inline static Control0 g_Control0{};
-            inline static Control1 g_Control1{};
+            inline static Control0 g_Control0;
+            inline static Control1 g_Control1;
 
             static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
             constexpr static uint32_t g_MaxFreq = calc_spi_freq(0);
@@ -288,12 +288,12 @@ namespace rpi
 
                 auto s = calc_spi_divider(f * 2);
                 if (s > g_MaxSpeedDivider) s = g_MaxSpeedDivider;
-                g_Control0.speed = s;
+                g_Control0.m_bits.speed = s;
             }
 
             static void set_clock_divider(uint32_t d)
             {
-                g_Control0.speed = d;
+                g_Control0.m_bits.speed = d;
             }
 
             template<class E>
@@ -310,8 +310,8 @@ namespace rpi
             )
             {
                 g_Control0.m_dw32 = rpi::tools::set_bits<Bits::cs, Bits::cs_len>(g_Control0.m_dw32, (~(1 << (uint32_t)cs)) & 0x7);
-                //g_Control0.cs_2 = false;
-                g_Control0.inv_clk = (uint32_t)clock;
+                //g_Control0.m_bits.cs_2 = false;
+                g_Control0.m_bits.inv_clk = (uint32_t)clock;
 
                 rpi::tools::set_bits<Bits::enalbeSPI1, 1>(aux_enabled_addr<RPi>(), 1);
                 end_transfer();
@@ -322,9 +322,9 @@ namespace rpi
                 auto cntl0 = aux_spi1_cntl_addr<RPi>();
                 auto cntl1 = cntl0 + 1;
                 if (bits_to_transfer == 0)//variable width
-                    g_Control0.var_width = 1;
+                    g_Control0.m_bits.var_width = 1;
                 else
-                    g_Control0.shift_len = bits_to_transfer;
+                    g_Control0.m_bits.shift_len = bits_to_transfer;
 
                 *cntl0 = g_Control0.m_dw32;
                 *cntl1 = g_Control1.m_dw32;
