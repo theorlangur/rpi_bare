@@ -8,6 +8,7 @@
 #endif
 
 #include <stdint.h>
+#include <type_traits>
 
 namespace rpi
 {
