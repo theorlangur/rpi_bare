@@ -147,6 +147,7 @@ namespace display {
     void send_data(const uint8_t *pData, size_t s)
     {
         Pins::OLED_DC << true;
+        //one-byte at a time
         //for(size_t i = 0; i < s; ++i)
         //    send_data(pData[i]);
         SPI::send(pData, s);

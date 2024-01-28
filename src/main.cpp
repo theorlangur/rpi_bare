@@ -23,33 +23,16 @@ extern "C" void kernel_main()
     display::icons::misc::init();
     //Timer::delay_ms(10000);
 
-    /*for(int i = 0; i < 3; ++i)
-    {
-        display::switch_oled(false);
-        Timer::delay_ms(1000);
-        display::switch_oled(true);
-        Timer::delay_ms(1000);
-    }*/
-
     const auto &symTrizub = display::icons::misc::symTrizub;
 
     display::clear();
-    //display::render_symbol({0,0}, symTrizub, {5,2}, {7,9});
-    //display::font::draw_char({10,0}, '0');
+    display::render_symbol({0,0}, symTrizub, {5,2}, {7,9});
+    display::font::draw_char({10,0}, '0');
     display::render_line({0, display::kDisplayHeight / 2}, {display::kDisplayWidth - 1, display::kDisplayHeight / 2});
     display::render_line({display::kDisplayWidth / 2, 0}, {display::kDisplayWidth / 2, display::kDisplayHeight - 1});
     display::render_line({0, 0}, {display::kDisplayWidth - 1, display::kDisplayHeight - 1});
     display::render_line({0, display::kDisplayHeight - 1}, {display::kDisplayWidth - 1, 0});
     display::show();
-    Timer::delay_ms(3000);
-    display::clear();
-    display::render_symbol({30,30}, symTrizub, {5,2}, {7,9});
-    display::show();
-    Timer::delay_ms(3000);
-    display::clear();
-    display::font::draw_char({40,40}, '2');
-    display::show();
-    Timer::delay_ms(3000);
 
     for(uint8_t y = 1; y < 8; ++y)
     {
@@ -58,7 +41,7 @@ extern "C" void kernel_main()
         display::font::draw_char({10,0}, '0' + y);
         display::show();
         //display::show_part(0, y, 7, 8);
-        Timer::delay_ms(10000);
+        Timer::delay_ms(3000);
     }
     display::font::draw_hex({0,0}, (uint32_t)(size_t)&kernel_main);
     display::font::draw_hex({0,8}, (uint32_t)(size_t)&symTrizub);
