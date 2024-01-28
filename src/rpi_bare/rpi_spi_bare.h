@@ -19,6 +19,7 @@ namespace rpi
 
         inline volatile uint32_t *dbg_aux_enabled = nullptr;
         inline volatile uint32_t *dbg_aux_spi1_cntl = nullptr;
+        inline volatile uint32_t *dbg_aux_spi1_cntl1 = nullptr;
         inline volatile uint32_t *dbg_aux_spi1_stat = nullptr;
         inline volatile uint32_t *dbg_aux_spi1_peek = nullptr;
         inline volatile uint32_t *dbg_aux_spi1_io = nullptr;
@@ -62,6 +63,7 @@ namespace rpi
                 {
                     dbg_aux_enabled = aux_enabled_addr<RPi>();
                     dbg_aux_spi1_cntl = aux_spi1_cntl_addr<RPi>();
+                    dbg_aux_spi1_cntl1 = dbg_aux_spi1_cntl + 1;
                     dbg_aux_spi1_stat = aux_spi1_stat_addr<RPi>();
                     dbg_aux_spi1_peek = aux_spi1_peek_addr<RPi>();
                     dbg_aux_spi1_io = aux_spi1_io_addr<RPi>();
