@@ -434,7 +434,7 @@ namespace rpi
                 {
                     while(ctrl::is_full());
                     uint32_t cnt = rpi::tools::min(len, uint32_t(3));
-                    uint32_t w = rpi::tools::set_bits<24, 8>(uint32_t(0), cnt * 24);
+                    uint32_t w = rpi::tools::set_bits<24, 5>(uint32_t(0), cnt * 8);
                     for(int i = 0; i < cnt; ++i, ++pSend)
                         w |= (*pSend) << ((2 - i) * 8);
                     len -= cnt;
