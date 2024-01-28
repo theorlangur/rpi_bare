@@ -23,6 +23,14 @@ extern "C" void kernel_main()
     display::icons::misc::init();
     //Timer::delay_ms(10000);
 
+    for(int i = 0; i < 3; ++i)
+    {
+        display::switch_oled(false);
+        Timer::delay_ms(1000);
+        display::switch_oled(true);
+        Timer::delay_ms(1000);
+    }
+
     const auto &symTrizub = display::icons::misc::symTrizub;
 
     display::clear();
