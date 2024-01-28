@@ -257,8 +257,9 @@ namespace rpi
 
                 busy = 6,
                 rx_empty = 7,
-                tx_empty = 8,
-                tx_full = 9,
+                rx_full = 8,
+                tx_empty = 9,
+                tx_full = 10,
                 bits_left = 0,
                 bits_left_len = 6,
 
