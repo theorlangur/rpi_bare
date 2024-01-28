@@ -12,6 +12,18 @@ namespace rpi
         inline uint32_t spi0_base[32*1024];
         inline uint32_t aux_base[32*1024];
 
+        inline volatile uint32_t *dbg_spi0_cs = nullptr;
+        inline volatile uint32_t *dbg_spi0_fifo = nullptr;
+        inline volatile uint32_t *dbg_spi0_clk = nullptr;
+        inline volatile uint32_t *dbg_spi0_dlen = nullptr;
+
+        inline volatile uint32_t *dbg_aux_enabled = nullptr;
+        inline volatile uint32_t *dbg_aux_spi1_cntl = nullptr;
+        inline volatile uint32_t *dbg_aux_spi1_stat = nullptr;
+        inline volatile uint32_t *dbg_aux_spi1_peek = nullptr;
+        inline volatile uint32_t *dbg_aux_spi1_io = nullptr;
+        inline volatile uint32_t *dbg_aux_spi1_txhold = nullptr;
+
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* spi0_base_addr() { return (volatile uint32_t*)spi0_base; }
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_base_addr() { return (volatile uint32_t*)aux_base; }
 #else
@@ -39,6 +51,23 @@ namespace rpi
 
             static void init()
             {
+#if defined(PI_BARE_FAKE)
+                if constexpr (std::is_same_v<pins, typename RPi::SPI0_Pins>)
+                {
+                    dbg_spi0_cs = cs_base_addr<RPi>();
+                    dbg_spi0_fifo = fifo_base_addr<RPi>();
+                    dbg_spi0_clk = clk_base_addr<RPi>();
+                    dbg_spi0_dlen = dlen_base_addr<RPi>();
+                }else
+                {
+                    dbg_aux_enabled = aux_enabled_addr<RPi>();
+                    dbg_aux_spi1_cntl = aux_spi1_cntl_addr<RPi>();
+                    dbg_aux_spi1_stat = aux_spi1_stat_addr<RPi>();
+                    dbg_aux_spi1_peek = aux_spi1_peek_addr<RPi>();
+                    dbg_aux_spi1_io = aux_spi1_io_addr<RPi>();
+                    dbg_aux_spi1_txhold = aux_spi1_txhold_addr<RPi>();
+                }
+#endif
                 __sync_synchronize();
                 if constexpr (std::is_same_v<pins, typename RPi::SPI1_Pins>)
                     PinT<pins::CE2_N>::select(pins::func);
