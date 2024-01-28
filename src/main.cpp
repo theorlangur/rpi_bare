@@ -23,13 +23,13 @@ extern "C" void kernel_main()
     display::icons::misc::init();
     //Timer::delay_ms(10000);
 
-    for(int i = 0; i < 3; ++i)
+    /*for(int i = 0; i < 3; ++i)
     {
         display::switch_oled(false);
         Timer::delay_ms(1000);
         display::switch_oled(true);
         Timer::delay_ms(1000);
-    }
+    }*/
 
     const auto &symTrizub = display::icons::misc::symTrizub;
 
@@ -41,18 +41,15 @@ extern "C" void kernel_main()
     display::render_line({0, 0}, {display::kDisplayWidth - 1, display::kDisplayHeight - 1});
     display::render_line({0, display::kDisplayHeight - 1}, {display::kDisplayWidth - 1, 0});
     display::show();
-    for(int i=0;i<100000;++i);
-    //Timer::delay_ms(3000);
+    Timer::delay_ms(3000);
     display::clear();
     display::render_symbol({30,30}, symTrizub, {5,2}, {7,9});
     display::show();
-    for(int i=0;i<100000;++i);
-    //Timer::delay_ms(3000);
-    //display::clear();
+    Timer::delay_ms(3000);
+    display::clear();
     display::font::draw_char({40,40}, '2');
     display::show();
-    for(int i=0;i<100000;++i);
-    //Timer::delay_ms(3000);
+    Timer::delay_ms(3000);
 
     for(uint8_t y = 1; y < 8; ++y)
     {
