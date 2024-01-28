@@ -9,8 +9,8 @@ namespace rpi
     namespace spi
     {
 #if defined(PI_BARE_FAKE)
-        extern uint32_t spi0_base[32*1024];
-        extern uint32_t aux_base[32*1024];
+        inline uint32_t spi0_base[32*1024];
+        inline uint32_t aux_base[32*1024];
 
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* spi0_base_addr() { return (volatile uint32_t*)spi0_base; }
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_base_addr() { return (volatile uint32_t*)aux_base; }
@@ -309,7 +309,8 @@ namespace rpi
                 Polarity chipSelect2 = Polarity::Low
             )
             {
-                g_Control0.m_dw32 = rpi::tools::set_bits<Bits::cs, Bits::cs_len>(g_Control0.m_dw32, (~(1 << (uint32_t)cs)) & 0x7);
+                auto chipSelectInverse = (~(uint32_t(1) << (uint32_t)cs)) & 0x7/*we have 3 CE to select from, so 0b0111*/;
+                g_Control0.m_dw32 = rpi::tools::set_bits<Bits::cs, Bits::cs_len>(g_Control0.m_dw32, chipSelectInverse);
                 g_Control0.m_bits.inv_clk = (uint32_t)clock;
 
                 rpi::tools::set_bits<Bits::enalbeSPI1, 1>(aux_enabled_addr<RPi>(), 1);

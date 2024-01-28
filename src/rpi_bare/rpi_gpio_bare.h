@@ -9,7 +9,7 @@ namespace rpi
     namespace gpio
     {
 #if defined(PI_BARE_FAKE)
-        extern uint32_t gpio_base[32 * 1024];
+        inline uint32_t gpio_base[32 * 1024];
 
         template<class RPi>
         inline BARECONSTEXPR volatile uint32_t* gpio_base_addr() { return (volatile uint32_t*)(gpio_base); }

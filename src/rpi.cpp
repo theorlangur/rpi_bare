@@ -6,31 +6,6 @@
 
 //#include <algorithm>
 
-#if defined(PI_BARE_FAKE)
-namespace rpi
-{
-    namespace gpio
-    {
-        uint32_t gpio_base[32 * 1024];
-    }
-}
-namespace rpi
-{
-    namespace spi
-    {
-        uint32_t spi0_base[32*1024];
-        uint32_t aux_base[32*1024];
-    }
-}
-namespace rpi
-{
-    namespace timers
-    {
-        uint32_t sys_timer_base[1024];
-    }
-}
-#endif
-
 namespace {
     bool init_spi()
     {        

@@ -8,7 +8,7 @@ namespace rpi
     namespace timers
     {
 #if defined(PI_BARE_FAKE)
-        extern uint32_t sys_timer_base[1024];
+        inline uint32_t sys_timer_base[1024];
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* sys_timer_base_addr() { return (volatile uint32_t*)sys_timer_base; }
 #else
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* sys_timer_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + RPi::off_sys_timer); }
