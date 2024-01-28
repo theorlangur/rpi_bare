@@ -147,9 +147,9 @@ namespace display {
     void send_data(const uint8_t *pData, size_t s)
     {
         Pins::OLED_DC << true;
-        for(size_t i = 0; i < s; ++i)
-            send_data(pData[i]);
-        //SPI::send(pData, s);
+        //for(size_t i = 0; i < s; ++i)
+        //    send_data(pData[i]);
+        SPI::send(pData, s);
     }
 
     void set_point(uint8_t x, uint8_t y, bool on)

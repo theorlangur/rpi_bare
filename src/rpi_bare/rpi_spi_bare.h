@@ -352,10 +352,9 @@ namespace rpi
             {
                 auto cntl0 = aux_spi1_cntl_addr<RPi>();
                 auto cntl1 = cntl0 + 1;
-                if (bits_to_transfer == 0)//variable width
-                    g_Control0.m_bits.var_width = 1;
-                else
-                    g_Control0.m_bits.shift_len = bits_to_transfer;
+                g_Control0.m_bits.var_width = bits_to_transfer == 0;
+                g_Control0.m_bits.shift_len = bits_to_transfer;
+                g_Control1.m_bits.in_ms_first = true;
 
                 *cntl0 = g_Control0.m_dw32;
                 *cntl1 = g_Control1.m_dw32;
