@@ -26,14 +26,26 @@ extern "C" void kernel_main()
     const auto &symTrizub = display::icons::misc::symTrizub;
 
     display::clear();
-    display::render_symbol({0,0}, symTrizub, {5,2}, {7,9});
-    display::font::draw_char({10,0}, '0');
+    //display::render_symbol({0,0}, symTrizub, {5,2}, {7,9});
+    //display::font::draw_char({10,0}, '0');
     display::render_line({0, display::kDisplayHeight / 2}, {display::kDisplayWidth - 1, display::kDisplayHeight / 2});
     display::render_line({display::kDisplayWidth / 2, 0}, {display::kDisplayWidth / 2, display::kDisplayHeight - 1});
     display::render_line({0, 0}, {display::kDisplayWidth - 1, display::kDisplayHeight - 1});
     display::render_line({0, display::kDisplayHeight - 1}, {display::kDisplayWidth - 1, 0});
     display::show();
-    Timer::delay_ms(10000);
+    for(int i=0;i<100000;++i);
+    //Timer::delay_ms(3000);
+    display::clear();
+    display::render_symbol({30,30}, symTrizub, {5,2}, {7,9});
+    display::show();
+    for(int i=0;i<100000;++i);
+    //Timer::delay_ms(3000);
+    //display::clear();
+    display::font::draw_char({40,40}, '2');
+    display::show();
+    for(int i=0;i<100000;++i);
+    //Timer::delay_ms(3000);
+
     for(uint8_t y = 1; y < 8; ++y)
     {
         display::clear_part(0, y - 1, 7, 9);
