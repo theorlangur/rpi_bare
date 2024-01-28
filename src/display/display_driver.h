@@ -3,13 +3,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "../rpi_cfg.h"
+
 namespace display
 {
     //GPIO pins
     enum class Pins: uint8_t
     {
         //OLED
-        OLED_CS = 8,
+        OLED_CS = OLED_DISPLAY_CS_PIN,
         OLED_RST = 25,
         OLED_DC = 24,
         //Keys
