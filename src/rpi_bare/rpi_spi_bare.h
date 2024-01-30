@@ -44,6 +44,23 @@ namespace rpi
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_io_addr()     { return (volatile uint32_t*)(aux_base_addr<RPi>() + RPi::off_aux_spi1_io/4); }
         template<class RPi> inline BARECONSTEXPR volatile uint32_t* aux_spi1_txhold_addr() { return (volatile uint32_t*)(aux_base_addr<RPi>() + RPi::off_aux_spi1_txhold/4); }
 
+        template<class RPi> static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
+        template<class RPi> constexpr static uint32_t g_MaxFreq = calc_spi_freq<RPi>(0);
+        template<class RPi> constexpr static uint32_t g_MinFreq = calc_spi_freq<RPi>(0b01111'1111'1111);
+        template<class RPi> static constexpr uint16_t calc_spi_divider(uint32_t f) { return (RPi::g_SysFreqHz + f - 1) / f;}
+        constexpr static uint16_t g_MaxSpeedDivider = 0xfff;
+
+        template<class RPi> 
+        static uint16_t get_speed_div_from_freq(uint32_t f)
+        {
+            if (f > g_MaxFreq<RPi>) f = g_MaxFreq<RPi>;
+            else if (f < g_MinFreq<RPi>) f = g_MinFreq<RPi>;
+
+            auto s = calc_spi_divider<RPi>(f * 2);
+            if (s > g_MaxSpeedDivider) s = g_MaxSpeedDivider;
+            return s;
+        }
+
         template<class RPi, class pins = typename RPi::SPI0_Pins>
         struct Config
         {
@@ -107,14 +124,6 @@ namespace rpi
             Begin = 1
         };
 
-        enum class Chip : uint32_t
-        {
-            CS0 = 0,
-            CS1 = 1,
-            CS2 = 2,
-            //Reserved
-        };
-
         enum class FIFO : uint32_t
         {
             None = 0b00,
@@ -151,7 +160,7 @@ namespace rpi
             friend uint32_t operator<<(E e, Bits b) { return uint32_t(e) << uint32_t(b); }
 
             static void configure_all(
-                Chip cs = Chip::CS0, 
+                RPi::SPI0_Pins::Chip cs = RPi::SPI0_Pins::Chip::CS0, 
                 ClockPhase ph = ClockPhase::Middle, 
                 Polarity clock = Polarity::Low, 
                 Polarity chipSelectAll = Polarity::Low,
@@ -222,6 +231,11 @@ namespace rpi
                 tools::mem_barrier m;
                 auto addr = clk_base_addr<RPi>();
                 *addr = div;
+            }
+
+            static void set_speed_div_from_freq(uint32_t f)
+            {
+                set_clock_divider(get_speed_div_from_freq<RPi>(f));
             }
         };
 
@@ -307,20 +321,9 @@ namespace rpi
             inline static Control0 g_Control0;
             inline static Control1 g_Control1;
 
-            static constexpr uint32_t calc_spi_freq(uint16_t div) { return RPi::g_SysFreqHz / (2 * (div + 1));}
-            constexpr static uint32_t g_MaxFreq = calc_spi_freq(0);
-            constexpr static uint32_t g_MinFreq = calc_spi_freq(0b01111'1111'1111);
-            static constexpr uint16_t calc_spi_divider(uint32_t f) { return (RPi::g_SysFreqHz + f - 1) / f;}
-            constexpr static uint16_t g_MaxSpeedDivider = 0xfff;
-
             static void set_speed_div_from_freq(uint32_t f)
             {
-                if (f > g_MaxFreq) f = g_MaxFreq;
-                else if (f < g_MinFreq) f = g_MinFreq;
-
-                auto s = calc_spi_divider(f * 2);
-                if (s > g_MaxSpeedDivider) s = g_MaxSpeedDivider;
-                g_Control0.m_bits.speed = s;
+                set_clock_divider(get_speed_div_from_freq<RPi>(f));
             }
 
             static void set_clock_divider(uint32_t d)
@@ -332,7 +335,7 @@ namespace rpi
             friend uint32_t operator<<(E e, Bits b) { return uint32_t(e) << uint32_t(b); }
 
             static void configure_all(
-                Chip cs = Chip::CS0, 
+                RPi::SPI1_Pins::Chip cs = RPi::SPI1_Pins::Chip::CS0, 
                 ClockPhase ph = ClockPhase::Middle, 
                 Polarity clock = Polarity::Low, 
                 Polarity chipSelectAll = Polarity::Low,
@@ -566,6 +569,22 @@ namespace rpi
                     drain_read();
 
                 ctrl::set_ta(false);
+            }
+        };
+
+        template<class RPi, class SPI>
+        struct SPIInit
+        {
+            SPIInit(typename SPI::Chip cs, uint32_t freq=1000'000)
+            {
+                rpi::spi::Config<RPi, SPI>::init();
+                //rpi::spi::Control<RPi, SPIPins>::set_clock_divider(128);
+                rpi::spi::Control<RPi, SPI>::set_speed_div_from_freq(freq);
+                rpi::spi::Control<RPi, SPI>::configure_all(cs);
+            }
+            ~SPIInit()
+            {
+                rpi::spi::Config<RPi, SPI>::end();
             }
         };
     }

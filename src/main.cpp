@@ -12,12 +12,11 @@
 extern "C" void kernel_main()
 {
     using Timer = rpi::timers::Sys<rpi::RPiBplus>;
-    rpi::Init initRpi;
-    if (!initRpi)
-        return;
-    display::Init initDisplay;
-    if (!initDisplay)
-        return;
+    rpi::RPiBplus::init();
+    rpi::spi::SPIInit<rpi::RPiBplus, rpi::RPiBplus::SPI1_Pins> spiInit(rpi::RPiBplus::SPI1_Pins::Chip::CS2);
+    DisplaySH1106<rpi::RPiBplus::SPI1_Pins> d;
+    d.init_gpio_pins();
+    d.init();
 
     display::font::init();
     display::icons::misc::init();
@@ -25,14 +24,14 @@ extern "C" void kernel_main()
 
     const auto &symTrizub = display::icons::misc::symTrizub;
 
-    display::clear();
-    display::render_symbol({0,0}, symTrizub, {5,2}, {7,9});
-    display::font::draw_char({10,0}, '0');
-    display::render_line({0, display::kDisplayHeight / 2}, {display::kDisplayWidth - 1, display::kDisplayHeight / 2});
-    display::render_line({display::kDisplayWidth / 2, 0}, {display::kDisplayWidth / 2, display::kDisplayHeight - 1});
-    display::render_line({0, 0}, {display::kDisplayWidth - 1, display::kDisplayHeight - 1});
-    display::render_line({0, display::kDisplayHeight - 1}, {display::kDisplayWidth - 1, 0});
-    display::show();
+    d.clear();
+    d.render_symbol({0,0}, symTrizub, {5,2}, {7,9});
+    d.font::draw_char({10,0}, '0');
+    d.render_line({0, display::kDisplayHeight / 2}, {display::kDisplayWidth - 1, display::kDisplayHeight / 2});
+    d.render_line({display::kDisplayWidth / 2, 0}, {display::kDisplayWidth / 2, display::kDisplayHeight - 1});
+    d.render_line({0, 0}, {display::kDisplayWidth - 1, display::kDisplayHeight - 1});
+    d.render_line({0, display::kDisplayHeight - 1}, {display::kDisplayWidth - 1, 0});
+    d.show();
 
     for(uint8_t y = 1; y < 8; ++y)
     {

@@ -65,6 +65,13 @@ namespace rpi
                 SCLK = 11,
             };
             constexpr static gpio::F func = gpio::F::F0;
+
+            enum class Chip : uint32_t
+            {
+                CS0 = 0,
+                CS1 = 1,
+                //Reserved
+            };
         };
 
 
@@ -80,6 +87,14 @@ namespace rpi
                 SCLK = 21,
             };
             constexpr static gpio::F func = gpio::F::F4;
+
+            enum class Chip : uint32_t
+            {
+                CS0 = 0,
+                CS1 = 1,
+                CS2 = 2,
+                //Reserved
+            };
         };
 
         static bool init()
@@ -113,6 +128,18 @@ namespace rpi
             }
 #endif
         }
+
+        struct Init
+        {
+            Init()
+            {
+                init();
+            }
+            ~Init()
+            {
+                close();
+            }
+        };
     };
 
     namespace gpio
