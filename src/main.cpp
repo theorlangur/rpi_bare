@@ -11,11 +11,16 @@
 
 extern "C" void kernel_main()
 {
-    using Timer = rpi::timers::Sys<rpi::RPiBplus>;
-    rpi::RPiBplus::init();
-    rpi::spi::SPIInit<rpi::RPiBplus, rpi::RPiBplus::SPI1_Pins> spiInit(rpi::RPiBplus::SPI1_Pins::Chip::CS2);
-    DisplaySH1106<rpi::RPiBplus::SPI1_Pins> d;
+    using RPi = rpi::RPiBplus;
+    using SPI = rpi::RPiBplus::SPI1_Pins;
+    using Timer = rpi::timers::Sys<RPi>;
+    using D = DisplaySH1106<SPI>;
+    constexpr auto CS = SPI::Chip::CS2;
+
+    RPi::Init rpiInit;
+    D d;
     d.init_gpio_pins();
+    rpi::spi::SPIInit<RPi, SPI> spiInit(CS);
     d.init();
 
     display::font::init();
@@ -24,35 +29,38 @@ extern "C" void kernel_main()
 
     const auto &symTrizub = display::icons::misc::symTrizub;
 
-    d.clear();
-    d.render_symbol({0,0}, symTrizub, {5,2}, {7,9});
-    d.font::draw_char({10,0}, '0');
-    d.render_line({0, display::kDisplayHeight / 2}, {display::kDisplayWidth - 1, display::kDisplayHeight / 2});
-    d.render_line({display::kDisplayWidth / 2, 0}, {display::kDisplayWidth / 2, display::kDisplayHeight - 1});
-    d.render_line({0, 0}, {display::kDisplayWidth - 1, display::kDisplayHeight - 1});
-    d.render_line({0, display::kDisplayHeight - 1}, {display::kDisplayWidth - 1, 0});
-    d.show();
+    using Renderer = display::font::FontRenderer<decltype(d)>;
+    Renderer r(d);
+
+    r.clear();
+    r.render_symbol({0,0}, symTrizub, {5,2}, {7,9});
+    r.draw_char({10,0}, '0');
+    r.render_line({0, D::kDisplayHeight / 2}, {D::kDisplayWidth - 1, D::kDisplayHeight / 2});
+    r.render_line({D::kDisplayWidth / 2, 0}, {D::kDisplayWidth / 2, D::kDisplayHeight - 1});
+    r.render_line({0, 0}, {D::kDisplayWidth - 1, D::kDisplayHeight - 1});
+    r.render_line({0, D::kDisplayHeight - 1}, {D::kDisplayWidth - 1, 0});
+    r.show();
 
     for(uint8_t y = 1; y < 8; ++y)
     {
-        display::clear_part(0, y - 1, 7, 9);
-        display::render_symbol({0,y}, symTrizub, {5,2}, {7,9});
-        display::font::draw_char({10,0}, '0' + y);
-        display::show();
+        r.clear_part(0, y - 1, 7, 9);
+        r.render_symbol({0,y}, symTrizub, {5,2}, {7,9});
+        r.draw_char({10,0}, '0' + y);
+        r.show();
         //display::show_part(0, y, 7, 8);
         Timer::delay_ms(3000);
     }
-    display::font::draw_hex({0,0}, (uint32_t)(size_t)&kernel_main);
-    display::font::draw_hex({0,8}, (uint32_t)(size_t)&symTrizub);
-    display::font::draw_hex({0,16}, (uint32_t)(size_t)&display::DisplayMemory);
-    display::font::draw_str({0,24}, "Hello World!");
-    display::show();
+    r.draw_hex({0,0}, (uint32_t)(size_t)&kernel_main);
+    r.draw_hex({0,8}, (uint32_t)(size_t)&symTrizub);
+    r.draw_hex({0,16}, (uint32_t)(size_t)&d);
+    r.draw_str({0,24}, "Hello World!");
+    r.show();
     Timer::delay_ms(20000);
 
     uint8_t x = 64, y = 32;
 
-    display::clear();
-    display::show();
+    r.clear();
+    r.show();
     Timer::delay_ms(2000);
 
     bool keyUp = false, keyDown = false, keyRight = false, keyLeft = false;
@@ -64,18 +72,18 @@ extern "C" void kernel_main()
     while(true)
     {
         Timer::delay_ms(5);
-        if (display::is_pressed(display::Pins::KEY1))
+        if (d.is_pressed(D::Pins::KEY1))
         {
             break;
         }
 
-        display::clear_part(prev.x, prev.y, symTrizub.size.w, symTrizub.size.h);
-        display::render_symbol(pos, symTrizub);
-        display::show_part(pos.x, pos.y, symTrizub.size.w, symTrizub.size.h);
-        if ((dx > 0 && ((pos.x + dx) + symTrizub.size.w >= display::kDisplayWidth)) || ((dx < 0) && !pos.x))
+        r.clear_part(prev.x, prev.y, symTrizub.size.w, symTrizub.size.h);
+        r.render_symbol(pos, symTrizub);
+        r.show_part(pos.x, pos.y, symTrizub.size.w, symTrizub.size.h);
+        if ((dx > 0 && ((pos.x + dx) + symTrizub.size.w >= D::kDisplayWidth)) || ((dx < 0) && !pos.x))
             dx = -dx;
 
-        if (((pos.y + dy) + symTrizub.size.h >= display::kDisplayHeight) || ((dy < 0) && !pos.y))
+        if (((pos.y + dy) + symTrizub.size.h >= D::kDisplayHeight) || ((dy < 0) && !pos.y))
             dy = -dy;
 
         prev = pos;

@@ -7,9 +7,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 list(APPEND SRC_FILES 
     src/main.cpp
-    src/rpi.cpp
-    src/display/display_driver.cpp
-    src/display/display_render.cpp
     src/display/display_font.cpp
     src/display/icons/display_icons_misc.cpp
     )

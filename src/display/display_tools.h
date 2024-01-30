@@ -9,6 +9,8 @@ namespace display
 {
     namespace tools
     {
+        template<class T> T diff_abs(T a, T b) { return a > b ? a - b : b - a; }
+
         struct Dims
         {
             uint8_t w;

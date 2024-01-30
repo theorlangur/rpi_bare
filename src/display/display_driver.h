@@ -28,6 +28,12 @@ public:
         KEY2 = 20,
         KEY3 = 16,
     };
+
+    static constexpr uint8_t kDisplayMaxWidth = 132;
+    static constexpr uint8_t kDisplayMaxHeight = 64;
+    static constexpr uint8_t kWidthPadding = 2;
+    static constexpr uint8_t kDisplayWidth = kDisplayMaxWidth - kWidthPadding*2;
+    static constexpr uint8_t kDisplayHeight = kDisplayMaxHeight;
 private:
     template<auto P>
     using RPiPin = rpi::gpio::PinBplus<P>;
@@ -48,11 +54,6 @@ private:
         return v != prev;
     }
 
-    static constexpr uint8_t kDisplayMaxWidth = 132;
-    static constexpr uint8_t kDisplayMaxHeight = 64;
-    static constexpr uint8_t kWidthPadding = 2;
-    static constexpr uint8_t kDisplayWidth = kDisplayMaxWidth - kWidthPadding*2;
-    static constexpr uint8_t kDisplayHeight = kDisplayMaxHeight;
     static constexpr uint16_t kDisplayMemorySize = kDisplayWidth * kDisplayHeight / 8;
     uint8_t DisplayMemory[kDisplayMemorySize]={0};
 
