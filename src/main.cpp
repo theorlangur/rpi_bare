@@ -1,5 +1,4 @@
 #include "rpi.h"
-#include "rpi_cfg.h"
 #include "display/display_driver.h"
 #include "display/display_render.h"
 #include "display/display_font.h"
