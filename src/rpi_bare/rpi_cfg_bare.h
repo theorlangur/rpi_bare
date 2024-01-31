@@ -73,6 +73,7 @@ namespace rpi
                 Clock = 3,
             };
             constexpr static gpio::F func = gpio::F::F0;
+            static constexpr uint32_t off = off_i2c1;
         };
         struct I2C0_Pins
         {
@@ -82,6 +83,7 @@ namespace rpi
                 Clock = 1,
             };
             constexpr static gpio::F func = gpio::F::F0;
+            static constexpr uint32_t off = off_i2c0;
         };
 
         struct SPI0_Pins

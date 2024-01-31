@@ -1,10 +1,10 @@
-#include "rpi.h"
 #include "display/display_driver.h"
 #include "display/display_render.h"
 #include "display/display_font.h"
 #include "rpi_bare/rpi_bare.h"
 #include "rpi_bare/rpi_cfg_bare.h"
 #include "rpi_bare/rpi_timers_bare.h"
+#include "rpi_bare/rpi_i2c_bare.h"
 
 #include "display/icons/display_icons_misc.h"
 
