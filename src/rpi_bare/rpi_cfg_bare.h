@@ -54,6 +54,36 @@ namespace rpi
 
         static constexpr uint32_t g_SysFreqHz = 250'000'000;//250MHz
 
+        static constexpr uint32_t off_i2c0        = 0x00205000;
+        static constexpr uint32_t off_i2c1        = 0x00804000;
+        static constexpr uint32_t off_i2c_c       = 0x00000000;
+        static constexpr uint32_t off_i2c_s       = 0x00000004;
+        static constexpr uint32_t off_i2c_dlen    = 0x00000008;
+        static constexpr uint32_t off_i2c_a       = 0x0000000c;
+        static constexpr uint32_t off_i2c_fifo    = 0x00000010;
+        static constexpr uint32_t off_i2c_div     = 0x00000014;
+        static constexpr uint32_t off_i2c_del     = 0x00000018;
+        static constexpr uint32_t off_i2c_clkt    = 0x0000001c;
+
+        struct I2C1_Pins
+        {
+            enum E : uint8_t
+            {
+                Data = 2,
+                Clock = 3,
+            };
+            constexpr static gpio::F func = gpio::F::F0;
+        };
+        struct I2C0_Pins
+        {
+            enum E : uint8_t
+            {
+                Data = 0,
+                Clock = 1,
+            };
+            constexpr static gpio::F func = gpio::F::F0;
+        };
+
         struct SPI0_Pins
         {
             enum E : uint8_t
