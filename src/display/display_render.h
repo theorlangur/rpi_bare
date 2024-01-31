@@ -1,14 +1,21 @@
 #ifndef DISPLAY_RENDER_H_
 #define DISPLAY_RENDER_H_
 #include "display_tools.h"
+#include <utility>
 
 template<class DisplayDriver>
-class BasicRenderer: public DisplayDriver
+class BasicRenderer
 {
 protected:
     DisplayDriver &m_Driver;
 public:
     BasicRenderer(DisplayDriver &d):m_Driver(d){}
+
+    void clear(auto &&...args) { m_Driver.clear(std::forward<decltype(args)>(args)...); }
+    void clear_rect(auto &&...args) { m_Driver.clear_rect(std::forward<decltype(args)>(args)...); }
+    void clear_part(auto &&...args) { m_Driver.clear_part(std::forward<decltype(args)>(args)...); }
+    void show_part(auto &&...args) { m_Driver.show_part(std::forward<decltype(args)>(args)...); }
+    void show(auto &&...args) { m_Driver.show(std::forward<decltype(args)>(args)...); }
 
     void render_symbol(display::tools::Point p, const display::tools::SymbolHeader &s)
     {

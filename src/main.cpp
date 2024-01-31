@@ -21,12 +21,15 @@ extern "C" void kernel_main()
     using Timer = rpi::timers::Sys<RPi>;
     using D = DisplaySH1106<SPI>;
     constexpr auto CS = SPI::Chip::CS2;
-    constexpr auto CS_GPIO_PIN = SPI::E::CE2_N;
 
     RPi::Init rpiInit;
     D d;
-    d.init_gpio_pins(CS_GPIO_PIN);
+    //the order here is important
+    //1. GPIO init
+    d.init_gpio_pins();
+    //2. SPI init
     rpi::spi::SPIInit<RPi, SPI> spiInit(CS);
+    //3. Display init
     d.init();
 
     display::font::init();
