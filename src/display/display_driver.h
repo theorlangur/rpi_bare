@@ -121,10 +121,11 @@ public:
         switch_oled(true);
         return true;
     }
-    void init_gpio_pins()
+    void init_gpio_pins(typename SPIToUse::E csPin)
     {
         RPiPin<Pins::OLED_RST>::select(rpi::gpio::F::Out);
         RPiPin<Pins::OLED_DC>::select(rpi::gpio::F::Out);
+        PinRT(csPin).select(rpi::gpio::F::Out);
         //RPiPin<Pins::OLED_CS>::select(rpi::gpio::F::Out);
 
         RPiPin<Pins::KEY_UP>::select(rpi::gpio::F::In);
