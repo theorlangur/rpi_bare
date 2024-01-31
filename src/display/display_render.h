@@ -3,6 +3,8 @@
 #include "display_tools.h"
 #include <utility>
 
+#define FORWARD_TO_DRIVER(f) void f(auto &&...args) { m_Driver.f(std::forward<decltype(args)>(args)...); }
+
 template<class DisplayDriver>
 class BasicRenderer
 {
@@ -11,11 +13,11 @@ protected:
 public:
     BasicRenderer(DisplayDriver &d):m_Driver(d){}
 
-    void clear(auto &&...args) { m_Driver.clear(std::forward<decltype(args)>(args)...); }
-    void clear_rect(auto &&...args) { m_Driver.clear_rect(std::forward<decltype(args)>(args)...); }
-    void clear_part(auto &&...args) { m_Driver.clear_part(std::forward<decltype(args)>(args)...); }
-    void show_part(auto &&...args) { m_Driver.show_part(std::forward<decltype(args)>(args)...); }
-    void show(auto &&...args) { m_Driver.show(std::forward<decltype(args)>(args)...); }
+    FORWARD_TO_DRIVER(clear);
+    FORWARD_TO_DRIVER(clear_rect);
+    FORWARD_TO_DRIVER(clear_part);
+    FORWARD_TO_DRIVER(show_part);
+    FORWARD_TO_DRIVER(show);
 
     void render_symbol(display::tools::Point p, const display::tools::SymbolHeader &s)
     {
