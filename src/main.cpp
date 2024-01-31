@@ -18,6 +18,15 @@ extern "C" void kernel_main()
     using Timer = rpi::timers::Sys<RPi>;
     using D = DisplaySH1106<SPI>;
 
+    using I2C = rpi::RPiBplus::I2C1_Pins;
+
+    uint8_t xxx = 0;
+    auto wr = rpi::i2c::Transfer<RPi, I2C>::write(&xxx, 1);
+    if (std::holds_alternative<uint32_t>(wr))
+    {
+        //success
+    }
+
     RPi::Init rpiInit;
     D d;
     //the order here is important

@@ -1,5 +1,8 @@
-#ifndef RPI_SPI_BARE_H_
-#define RPI_SPI_BARE_H_
+#ifndef RPI_I2C_BARE_H_
+#define RPI_I2C_BARE_H_
+
+#include <algorithm>
+#include <variant>
 
 #include "rpi_bare.h"
 #include "rpi_gpio_bare.h"
@@ -41,19 +44,132 @@ namespace rpi
 #else
         template<class RPi, uint32_t i2c_base> inline BARECONSTEXPR volatile uint32_t* i2c_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + i2c_base); }
 #endif
-        template<uint32_t i2c_base>
+        template<class RPi, uint32_t i2c_base>
         struct i2c_func
         {
-            template<class RPi> static inline BARECONSTEXPR volatile uint32_t* c_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_c / 4); }
-            template<class RPi> static inline BARECONSTEXPR volatile uint32_t* s_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_s / 4); }
-            template<class RPi> static inline BARECONSTEXPR volatile uint32_t* dlen_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_dlen / 4); }
-            template<class RPi> static inline BARECONSTEXPR volatile uint32_t* a_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_a / 4); }
-            template<class RPi> static inline BARECONSTEXPR volatile uint32_t* fifo_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_fifo / 4); }
-            template<class RPi> static inline BARECONSTEXPR volatile uint32_t* div_addr()  { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_div / 4); }
-            template<class RPi> static inline BARECONSTEXPR volatile uint32_t* del_addr()  { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_del / 4); }
-            template<class RPi> static inline BARECONSTEXPR volatile uint32_t* clkt_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_clkt / 4); }
+            static inline BARECONSTEXPR volatile uint32_t* c_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_c / 4); }
+            static inline BARECONSTEXPR volatile uint32_t* s_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_s / 4); }
+            static inline BARECONSTEXPR volatile uint32_t* dlen_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_dlen / 4); }
+            static inline BARECONSTEXPR volatile uint32_t* a_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_a / 4); }
+            static inline BARECONSTEXPR volatile uint32_t* fifo_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_fifo / 4); }
+            static inline BARECONSTEXPR volatile uint32_t* div_addr()  { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_div / 4); }
+            static inline BARECONSTEXPR volatile uint32_t* del_addr()  { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_del / 4); }
+            static inline BARECONSTEXPR volatile uint32_t* clkt_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_clkt / 4); }
         };
 
+        static constexpr uint32_t max_fifo_size = 16;
+
+        struct ControlReg
+        {
+            enum class Bits
+            {
+                read = 0,
+                clear = 4,//2 bits
+                start_transfer = 7,
+                int_done = 8,
+                int_tx = 9,
+                int_rx = 10,
+                i2c_enabled = 15,
+            };
+
+            void write_to(volatile uint32_t *addr)
+            {
+                *addr = *(uint32_t*)this;
+            }
+
+            uint32_t read           :1 = 0;
+            uint32_t reserved       :3 = 0;
+            uint32_t clear          :2 = 0;
+            uint32_t reserved2      :1 = 0;
+            uint32_t start_transfer :1 = 0;
+            uint32_t int_done       :1 = 0;
+            uint32_t int_tx         :1 = 0;
+            uint32_t int_rx         :1 = 0;
+            uint32_t reserved3      :4 = 0;
+            uint32_t i2c_enabled    :1 = 0;
+            uint32_t reserved4      :16= 0;
+        };
+
+        struct StatusReg
+        {
+            enum class Bits
+            {
+                transfer_active = 0,
+                transfer_done = 1,
+                tx_need_write = 2,
+                tx_need_read = 3,
+                tx_can_accept_data = 4,
+                rx_has_data = 5,
+                tx_fifo_empty = 6,
+                rx_fifo_full = 7,
+                err_ack = 8,
+                clkt_stretch_timeout = 9,
+            };
+
+            StatusReg() = default;
+            StatusReg(volatile const uint32_t *addr)
+            {
+                *(uint32_t*)this = *addr;
+            }
+
+            void operator=(volatile const uint32_t *addr)
+            {
+                *(uint32_t*)this = *addr;
+            }
+
+            void write_to(volatile uint32_t *addr)
+            {
+                *addr = *(uint32_t*)this;
+            }
+
+            uint32_t transfer_active      :1 = 0;
+            uint32_t transfer_done        :1 = 0;
+            uint32_t tx_need_write        :1 = 0;
+            uint32_t rx_need_read         :1 = 0;
+            uint32_t tx_can_accept_data   :1 = 0;
+            uint32_t rx_has_data          :1 = 0;
+            uint32_t tx_fifo_empty        :1 = 0;
+            uint32_t rx_fifo_full         :1 = 0;
+            uint32_t err_ack              :1 = 0;
+            uint32_t clkt_stretch_timeout :1 = 0;
+            uint32_t reserved             :22= 0;
+        };
+
+        struct DlenReg
+        {
+            uint32_t dlen: 16;
+            uint32_t reserved: 16;
+        };
+
+        struct SlaveAddrReg
+        {
+            uint32_t addr: 7;
+            uint32_t reserved: 25;
+        };
+
+        struct FifoReg
+        {
+            uint32_t data: 8;
+            uint32_t reserved: 24;
+        };
+
+        struct DivReg
+        {
+            uint32_t div: 16;
+            uint32_t reserved: 16;
+        };
+
+        struct DelayReg
+        {
+            uint32_t rising_edge_delay: 16;
+            uint32_t falling_edge_delay: 16;
+        };
+
+        struct ClockStretchTimeoutReg
+        {
+            uint32_t tout: 16 = 0x40;
+            uint32_t reserved: 16;
+        };
 
         template<class RPi, class pins = typename RPi::I2C1_Pins>
         struct Config
@@ -104,38 +220,157 @@ namespace rpi
         template<class RPi, typename pins=RPi::I2C1_Pins>
         struct Control
         {
-            enum class Bits : uint32_t
-            {
-            };
-
-            template<class E>
-            friend uint32_t operator<<(E e, Bits b) { return uint32_t(e) << uint32_t(b); }
-
             static void configure_all()
             {
-                //implement
+                clear_fifo();
             }
 
+            static void set_slave_addr(uint8_t addr)
+            {
+                auto a_reg = i2c_func<RPi, pins::off>::a_addr();
+                rpi::tools::set_bits<0, 7>(a_reg, addr);
+            }
+
+            static void clear_fifo()
+            {
+                auto c_reg = i2c_func<RPi, pins::off>::c_addr();
+                rpi::tools::set_bits<ControlReg::Bits::clear, 2>(c_reg, 0b011);
+            }
+
+            static void clear_status()
+            {
+                auto s_reg = i2c_func<RPi, pins::off>::c_addr();
+                StatusReg sr;
+                sr.transfer_done = 1;
+                sr.err_ack = 1;
+                sr.clkt_stretch_timeout = 1;
+                sr.write_to(s_reg);
+            }
+
+            static StatusReg status()
+            {
+                return i2c_func<RPi, pins::off>::s_addr();
+            }
+
+            static bool fifo_empty()
+            {
+                auto s_reg = i2c_func<RPi, pins::off>::c_addr();
+                return ((StatusReg*)s_reg)->tx_fifo_empty;
+            }
         };
 
-        template<class RPi, class pins=typename RPi::SPI1_Pins>
+        template<class RPi, class pins=typename RPi::I2C1_Pins>
         struct Transfer
         {
-            using ctrl = Control<RPi, typename RPi::SPI1_Pins>;
+            using ctrl = Control<RPi, typename RPi::I2C1_Pins>;
 
-            static uint8_t transfer_byte(uint8_t b)
+            enum Error: uint8_t
             {
-                //implement
-            }
-            
-            static void write(const uint8_t *pSend, uint32_t len)
+                Err = 1,
+                Timeout = 2
+            };
+            using Result = std::variant<uint32_t, Error>;
+
+            static void write_fifo(uint8_t b)
             {
-                //implement
+                auto fifo_reg = i2c_func<RPi, pins::off>::fifo_addr();
+                rpi::tools::set_bits<0, 8>(fifo_reg, b);
             }
 
-            static void read(uint8_t *pRecv, uint32_t len)
+            static uint8_t read_fifo()
             {
-                //implement
+                auto fifo_reg = i2c_func<RPi, pins::off>::fifo_addr();
+                return rpi::tools::get_bits<0, 8>(fifo_reg) & 0x0ff;
+            }
+
+            static Result write(const uint8_t *pSend, uint32_t len)
+            {
+                using Ctrl = Control<RPi, pins>;
+                using funcs = i2c_func<RPi, pins::off>;
+                Ctrl::clear_fifo();
+                Ctrl::clear_status();
+                auto dlen_reg = funcs::dlen_addr();
+                auto preload_len = std::min(len, max_fifo_size);
+                rpi::tools::set_bits<0, 16>(dlen_reg, preload_len);
+                uint32_t _len = len;
+                len -= preload_len;
+                while(preload_len--)
+                    write_fifo(*pSend++);
+
+                ControlReg cr;
+                cr.read = 0;
+                cr.i2c_enabled = 1;
+                cr.start_transfer = 1;
+                auto c_reg = funcs::c_addr();
+                *c_reg = *(uint32_t*)&cr;
+
+                StatusReg sr = Ctrl::status();
+                while(len)
+                {
+                    while(!sr.tx_can_accept_data)
+                        sr = Ctrl::status();
+
+                    if (sr.err_ack)
+                        return Error::Err;
+                    if (sr.clkt_stretch_timeout)
+                        return Error::Timeout;
+
+                    write_fifo(*pSend++);
+                    --len;
+                }
+
+                while(!sr.transfer_done && !sr.err_ack && !sr.clkt_stretch_timeout)
+                    sr = Ctrl::status();
+
+                if (sr.err_ack)
+                    return Error::Err;
+                if (sr.clkt_stretch_timeout)
+                    return Error::Timeout;
+
+                Ctrl::clear_status();
+                return _len - len;
+            }
+
+            static Result read(uint8_t *pRecv, uint32_t len)
+            {
+                using Ctrl = Control<RPi, pins>;
+                using funcs = i2c_func<RPi, pins::off>;
+                Ctrl::clear_fifo();
+                Ctrl::clear_status();
+                auto dlen_reg = funcs::dlen_addr();
+                auto _len = len;
+
+                ControlReg cr;
+                cr.read = 1;
+                cr.i2c_enabled = 1;
+                cr.start_transfer = 1;
+                auto c_reg = funcs::c_addr();
+                cr.write_to(c_reg);
+                StatusReg sr = Ctrl::status();
+                while(!sr.transfer_done)
+                {
+                    while(len && sr.rx_has_data)
+                    {
+                        *pRecv++ = read_fifo();
+                        --len;
+                        sr = Ctrl::status();
+                    }
+                }
+
+                while(len && sr.rx_has_data)
+                {
+                    *pRecv++ = read_fifo();
+                    --len;
+                    sr = Ctrl::status();
+                }
+
+                if (sr.err_ack)
+                    return Error::Err;
+                if (sr.clkt_stretch_timeout)
+                    return Error::Timeout;
+
+                Ctrl::clear_status();
+                return _len - len;
             }
         };
 
