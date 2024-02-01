@@ -44,22 +44,56 @@ namespace rpi
 #else
         template<class RPi, uint32_t i2c_base> inline BARECONSTEXPR volatile uint32_t* i2c_base_addr() { return (volatile uint32_t*)(RPi::io_base_addr + i2c_base); }
 #endif
+        enum class c_addr_type: uint32_t{};
+        enum class s_addr_type: uint32_t{};
+        enum class dlen_addr_type: uint32_t{};
+        enum class a_addr_type: uint32_t{};
+        enum class fifo_addr_type: uint32_t{};
+        enum class div_addr_type: uint32_t{};
+        enum class del_addr_type: uint32_t{};
+        enum class clkt_addr_type: uint32_t{};
+
         template<class RPi, uint32_t i2c_base>
         struct i2c_func
         {
-            static inline BARECONSTEXPR volatile uint32_t* c_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_c / 4); }
-            static inline BARECONSTEXPR volatile uint32_t* s_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_s / 4); }
-            static inline BARECONSTEXPR volatile uint32_t* dlen_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_dlen / 4); }
-            static inline BARECONSTEXPR volatile uint32_t* a_addr()    { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_a / 4); }
-            static inline BARECONSTEXPR volatile uint32_t* fifo_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_fifo / 4); }
-            static inline BARECONSTEXPR volatile uint32_t* div_addr()  { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_div / 4); }
-            static inline BARECONSTEXPR volatile uint32_t* del_addr()  { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_del / 4); }
-            static inline BARECONSTEXPR volatile uint32_t* clkt_addr() { return (volatile uint32_t*)(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_clkt / 4); }
+            static inline BARECONSTEXPR auto c_addr()    { return (volatile c_addr_type*    )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_c / 4); }
+            static inline BARECONSTEXPR auto s_addr()    { return (volatile s_addr_type*    )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_s / 4); }
+            static inline BARECONSTEXPR auto dlen_addr() { return (volatile dlen_addr_type* )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_dlen / 4); }
+            static inline BARECONSTEXPR auto a_addr()    { return (volatile a_addr_type*    )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_a / 4); }
+            static inline BARECONSTEXPR auto fifo_addr() { return (volatile fifo_addr_type* )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_fifo / 4); }
+            static inline BARECONSTEXPR auto div_addr()  { return (volatile div_addr_type*  )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_div / 4); }
+            static inline BARECONSTEXPR auto del_addr()  { return (volatile del_addr_type*  )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_del / 4); }
+            static inline BARECONSTEXPR auto clkt_addr() { return (volatile clkt_addr_type* )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_clkt / 4); }
         };
 
         static constexpr uint32_t max_fifo_size = 16;
 
-        struct ControlReg
+        template<class RegAddrType>
+        struct BaseReg
+        {
+            BaseReg() = default;
+            BaseReg(volatile const RegAddrType *addr)
+            {
+                *(RegAddrType*)this = *addr;
+            }
+
+            void operator=(volatile const RegAddrType *addr)
+            {
+                *(RegAddrType*)this = *addr;
+            }
+
+            void write_to(volatile RegAddrType *addr) const
+            {
+                *addr = *(const RegAddrType*)this;
+            }
+
+            void read_from(const volatile RegAddrType *addr)
+            {
+                *(RegAddrType*)this = *addr;
+            }
+        };
+
+        struct ControlReg: BaseReg<c_addr_type>
         {
             enum class Bits
             {
@@ -72,10 +106,7 @@ namespace rpi
                 i2c_enabled = 15,
             };
 
-            void write_to(volatile uint32_t *addr)
-            {
-                *addr = *(uint32_t*)this;
-            }
+            using BaseReg::BaseReg;
 
             uint32_t read           :1 = 0;
             uint32_t reserved       :3 = 0;
@@ -90,8 +121,9 @@ namespace rpi
             uint32_t reserved4      :16= 0;
         };
 
-        struct StatusReg
+        struct StatusReg: BaseReg<s_addr_type>
         {
+            using BaseReg::BaseReg;
             enum class Bits
             {
                 transfer_active = 0,
@@ -106,22 +138,6 @@ namespace rpi
                 clkt_stretch_timeout = 9,
             };
 
-            StatusReg() = default;
-            StatusReg(volatile const uint32_t *addr)
-            {
-                *(uint32_t*)this = *addr;
-            }
-
-            void operator=(volatile const uint32_t *addr)
-            {
-                *(uint32_t*)this = *addr;
-            }
-
-            void write_to(volatile uint32_t *addr)
-            {
-                *addr = *(uint32_t*)this;
-            }
-
             uint32_t transfer_active      :1 = 0;
             uint32_t transfer_done        :1 = 0;
             uint32_t tx_need_write        :1 = 0;
@@ -135,38 +151,44 @@ namespace rpi
             uint32_t reserved             :22= 0;
         };
 
-        struct DlenReg
+        struct DlenReg: BaseReg<s_addr_type>
         {
+            using BaseReg::BaseReg;
             uint32_t dlen: 16;
             uint32_t reserved: 16;
         };
 
-        struct SlaveAddrReg
+        struct SlaveAddrReg: BaseReg<a_addr_type>
         {
+            using BaseReg::BaseReg;
             uint32_t addr: 7;
             uint32_t reserved: 25;
         };
 
-        struct FifoReg
+        struct FifoReg: BaseReg<fifo_addr_type>
         {
+            using BaseReg::BaseReg;
             uint32_t data: 8;
             uint32_t reserved: 24;
         };
 
-        struct DivReg
+        struct DivReg: BaseReg<div_addr_type>
         {
+            using BaseReg::BaseReg;
             uint32_t div: 16;
             uint32_t reserved: 16;
         };
 
-        struct DelayReg
+        struct DelayReg: BaseReg<del_addr_type>
         {
+            using BaseReg::BaseReg;
             uint32_t rising_edge_delay: 16;
             uint32_t falling_edge_delay: 16;
         };
 
-        struct ClockStretchTimeoutReg
+        struct ClockStretchTimeoutReg: BaseReg<clkt_addr_type>
         {
+            using BaseReg::BaseReg;
             uint32_t tout: 16 = 0x40;
             uint32_t reserved: 16;
         };
@@ -196,24 +218,24 @@ namespace rpi
 #if defined(PI_BARE_FAKE)
                 if constexpr (!std::is_same_v<pins, typename RPi::I2C1_Pins>)
                 {
-                    dbg_i2c0_c = funcs::c_addr();
-                    dbg_i2c0_s = funcs::s_addr();
-                    dbg_i2c0_dlen = funcs::dlen_addr();
-                    dbg_i2c0_a = funcs::a_addr();
-                    dbg_i2c0_fifo = funcs::fifo_addr();
-                    dbg_i2c0_div = funcs::div_addr();
-                    dbg_i2c0_del = funcs::del_addr();
-                    dbg_i2c0_clkt = funcs::clkt_addr();
+                    dbg_i2c0_c    = (volatile uint32_t*)funcs::c_addr();
+                    dbg_i2c0_s    = (volatile uint32_t*)funcs::s_addr();
+                    dbg_i2c0_dlen = (volatile uint32_t*)funcs::dlen_addr();
+                    dbg_i2c0_a    = (volatile uint32_t*)funcs::a_addr();
+                    dbg_i2c0_fifo = (volatile uint32_t*)funcs::fifo_addr();
+                    dbg_i2c0_div  = (volatile uint32_t*)funcs::div_addr();
+                    dbg_i2c0_del  = (volatile uint32_t*)funcs::del_addr();
+                    dbg_i2c0_clkt = (volatile uint32_t*)funcs::clkt_addr();
                 }else
                 {
-                    dbg_i2c1_c = funcs::c_addr();
-                    dbg_i2c1_s = funcs::s_addr();
-                    dbg_i2c1_dlen = funcs::dlen_addr();
-                    dbg_i2c1_a = funcs::a_addr();
-                    dbg_i2c1_fifo = funcs::fifo_addr();
-                    dbg_i2c1_div = funcs::div_addr();
-                    dbg_i2c1_del = funcs::del_addr();
-                    dbg_i2c1_clkt = funcs::clkt_addr();
+                    dbg_i2c1_c    = (volatile uint32_t*)funcs::c_addr();
+                    dbg_i2c1_s    = (volatile uint32_t*)funcs::s_addr();
+                    dbg_i2c1_dlen = (volatile uint32_t*)funcs::dlen_addr();
+                    dbg_i2c1_a    = (volatile uint32_t*)funcs::a_addr();
+                    dbg_i2c1_fifo = (volatile uint32_t*)funcs::fifo_addr();
+                    dbg_i2c1_div  = (volatile uint32_t*)funcs::div_addr();
+                    dbg_i2c1_del  = (volatile uint32_t*)funcs::del_addr();
+                    dbg_i2c1_clkt = (volatile uint32_t*)funcs::clkt_addr();
                 }
 #endif
                 __sync_synchronize();
@@ -238,13 +260,13 @@ namespace rpi
             static void set_slave_addr(uint8_t addr)
             {
                 auto a_reg = funcs::a_addr();
-                rpi::tools::set_bits<0, 7>(a_reg, addr);
+                rpi::tools::set_bits<0, 7>((volatile uint32_t*)a_reg, addr);
             }
 
             static void clear_fifo()
             {
                 auto c_reg = funcs::c_addr();
-                rpi::tools::set_bits<ControlReg::Bits::clear, 2>(c_reg, 0b011);
+                rpi::tools::set_bits<ControlReg::Bits::clear, 2>((volatile uint32_t*)c_reg, 0b011);
             }
 
             static StatusReg status()
@@ -258,7 +280,7 @@ namespace rpi
                 clear_status();
                 auto dlen_reg = funcs::dlen_addr();
                 auto preload_len = std::min(len, max_fifo_size);
-                rpi::tools::set_bits<0, 16>(dlen_reg, preload_len);
+                rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, preload_len);
                 uint32_t _len = len;
                 len -= preload_len;
                 while(preload_len--)
@@ -358,13 +380,13 @@ namespace rpi
             static void write_fifo(uint8_t b)
             {
                 auto fifo_reg = funcs::fifo_addr();
-                rpi::tools::set_bits<0, 8>(fifo_reg, b);
+                rpi::tools::set_bits<0, 8>((volatile uint32_t*)fifo_reg, b);
             }
 
             static uint8_t read_fifo()
             {
                 auto fifo_reg = funcs::fifo_addr();
-                return rpi::tools::get_bits<0, 8>(fifo_reg) & 0x0ff;
+                return rpi::tools::get_bits<0, 8>((uint32_t)*fifo_reg) & 0x0ff;
             }
         };
     }

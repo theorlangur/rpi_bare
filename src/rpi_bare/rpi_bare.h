@@ -90,6 +90,11 @@ namespace rpi
             mem_barrier() { __sync_synchronize(); }
             ~mem_barrier() { __sync_synchronize(); }
         };
+
+        inline void memcpy(uint8_t *pDest, const uint8_t *pSrc, std::size_t n) { while(n--) *pDest++ = *pSrc++; }
+        inline void memcpy(uint8_t *pDest, const volatile uint8_t *pSrc, std::size_t n) { while(n--) *pDest++ = *pSrc++; }
+        inline void memcpy(volatile uint8_t *pDest, const uint8_t *pSrc, std::size_t n) { while(n--) *pDest++ = *pSrc++; }
+        inline void memcpy(volatile uint8_t *pDest, const volatile uint8_t *pSrc, std::size_t n) { while(n--) *pDest++ = *pSrc++; }
     }
 
     namespace gpio
