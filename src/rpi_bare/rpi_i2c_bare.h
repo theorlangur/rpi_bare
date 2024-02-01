@@ -237,19 +237,19 @@ namespace rpi
 
             static void set_slave_addr(uint8_t addr)
             {
-                auto a_reg = i2c_func<RPi, pins::off>::a_addr();
+                auto a_reg = funcs::a_addr();
                 rpi::tools::set_bits<0, 7>(a_reg, addr);
             }
 
             static void clear_fifo()
             {
-                auto c_reg = i2c_func<RPi, pins::off>::c_addr();
+                auto c_reg = funcs::c_addr();
                 rpi::tools::set_bits<ControlReg::Bits::clear, 2>(c_reg, 0b011);
             }
 
             static StatusReg status()
             {
-                return i2c_func<RPi, pins::off>::s_addr();
+                return funcs::s_addr();
             }
 
             static TransferResult write(const uint8_t *pSend, uint32_t len)
@@ -341,7 +341,7 @@ namespace rpi
         private:
             static void clear_status()
             {
-                auto s_reg = i2c_func<RPi, pins::off>::c_addr();
+                auto s_reg = funcs::c_addr();
                 StatusReg sr;
                 sr.transfer_done = 1;
                 sr.err_ack = 1;
@@ -351,19 +351,19 @@ namespace rpi
 
             static bool fifo_empty()
             {
-                auto s_reg = i2c_func<RPi, pins::off>::c_addr();
+                auto s_reg = funcs::c_addr();
                 return ((StatusReg*)s_reg)->tx_fifo_empty;
             }
 
             static void write_fifo(uint8_t b)
             {
-                auto fifo_reg = i2c_func<RPi, pins::off>::fifo_addr();
+                auto fifo_reg = funcs::fifo_addr();
                 rpi::tools::set_bits<0, 8>(fifo_reg, b);
             }
 
             static uint8_t read_fifo()
             {
-                auto fifo_reg = i2c_func<RPi, pins::off>::fifo_addr();
+                auto fifo_reg = funcs::fifo_addr();
                 return rpi::tools::get_bits<0, 8>(fifo_reg) & 0x0ff;
             }
         };
