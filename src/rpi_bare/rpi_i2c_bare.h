@@ -172,10 +172,24 @@ namespace rpi
         };
 
         template<class RPi, class pins = typename RPi::I2C1_Pins>
-        struct Config
+        struct I2C
         {
             template<auto p>
             using PinT = rpi::gpio::Pin<p, RPi>;
+            using funcs = i2c_func<RPi, pins::off>;
+
+            enum Error: uint8_t
+            {
+                Err = 1,
+                Timeout = 2
+            };
+            using TransferResult = std::variant<uint32_t, Error>;
+
+            struct Init
+            {
+                Init() { init(); configure_all(); }
+                ~Init() { end(); }
+            };
 
             static void init()
             {
@@ -215,11 +229,7 @@ namespace rpi
                 PinT<pins::Clock>::select(rpi::gpio::F::In);
                 __sync_synchronize();
             }
-        };
 
-        template<class RPi, typename pins=RPi::I2C1_Pins>
-        struct Control
-        {
             static void configure_all()
             {
                 clear_fifo();
@@ -237,58 +247,15 @@ namespace rpi
                 rpi::tools::set_bits<ControlReg::Bits::clear, 2>(c_reg, 0b011);
             }
 
-            static void clear_status()
-            {
-                auto s_reg = i2c_func<RPi, pins::off>::c_addr();
-                StatusReg sr;
-                sr.transfer_done = 1;
-                sr.err_ack = 1;
-                sr.clkt_stretch_timeout = 1;
-                sr.write_to(s_reg);
-            }
-
             static StatusReg status()
             {
                 return i2c_func<RPi, pins::off>::s_addr();
             }
 
-            static bool fifo_empty()
+            static TransferResult write(const uint8_t *pSend, uint32_t len)
             {
-                auto s_reg = i2c_func<RPi, pins::off>::c_addr();
-                return ((StatusReg*)s_reg)->tx_fifo_empty;
-            }
-        };
-
-        template<class RPi, class pins=typename RPi::I2C1_Pins>
-        struct Transfer
-        {
-            using ctrl = Control<RPi, typename RPi::I2C1_Pins>;
-
-            enum Error: uint8_t
-            {
-                Err = 1,
-                Timeout = 2
-            };
-            using Result = std::variant<uint32_t, Error>;
-
-            static void write_fifo(uint8_t b)
-            {
-                auto fifo_reg = i2c_func<RPi, pins::off>::fifo_addr();
-                rpi::tools::set_bits<0, 8>(fifo_reg, b);
-            }
-
-            static uint8_t read_fifo()
-            {
-                auto fifo_reg = i2c_func<RPi, pins::off>::fifo_addr();
-                return rpi::tools::get_bits<0, 8>(fifo_reg) & 0x0ff;
-            }
-
-            static Result write(const uint8_t *pSend, uint32_t len)
-            {
-                using Ctrl = Control<RPi, pins>;
-                using funcs = i2c_func<RPi, pins::off>;
-                Ctrl::clear_fifo();
-                Ctrl::clear_status();
+                clear_fifo();
+                clear_status();
                 auto dlen_reg = funcs::dlen_addr();
                 auto preload_len = std::min(len, max_fifo_size);
                 rpi::tools::set_bits<0, 16>(dlen_reg, preload_len);
@@ -304,11 +271,11 @@ namespace rpi
                 auto c_reg = funcs::c_addr();
                 *c_reg = *(uint32_t*)&cr;
 
-                StatusReg sr = Ctrl::status();
+                StatusReg sr = status();
                 while(len)
                 {
                     while(!sr.tx_can_accept_data)
-                        sr = Ctrl::status();
+                        sr = status();
 
                     if (sr.err_ack)
                         return Error::Err;
@@ -320,23 +287,21 @@ namespace rpi
                 }
 
                 while(!sr.transfer_done && !sr.err_ack && !sr.clkt_stretch_timeout)
-                    sr = Ctrl::status();
+                    sr = status();
 
                 if (sr.err_ack)
                     return Error::Err;
                 if (sr.clkt_stretch_timeout)
                     return Error::Timeout;
 
-                Ctrl::clear_status();
+                clear_status();
                 return _len - len;
             }
 
-            static Result read(uint8_t *pRecv, uint32_t len)
+            static TransferResult read(uint8_t *pRecv, uint32_t len)
             {
-                using Ctrl = Control<RPi, pins>;
-                using funcs = i2c_func<RPi, pins::off>;
-                Ctrl::clear_fifo();
-                Ctrl::clear_status();
+                clear_fifo();
+                clear_status();
                 auto dlen_reg = funcs::dlen_addr();
                 auto _len = len;
 
@@ -346,14 +311,14 @@ namespace rpi
                 cr.start_transfer = 1;
                 auto c_reg = funcs::c_addr();
                 cr.write_to(c_reg);
-                StatusReg sr = Ctrl::status();
+                StatusReg sr = status();
                 while(!sr.transfer_done)
                 {
                     while(len && sr.rx_has_data)
                     {
                         *pRecv++ = read_fifo();
                         --len;
-                        sr = Ctrl::status();
+                        sr = status();
                     }
                 }
 
@@ -361,7 +326,7 @@ namespace rpi
                 {
                     *pRecv++ = read_fifo();
                     --len;
-                    sr = Ctrl::status();
+                    sr = status();
                 }
 
                 if (sr.err_ack)
@@ -369,22 +334,37 @@ namespace rpi
                 if (sr.clkt_stretch_timeout)
                     return Error::Timeout;
 
-                Ctrl::clear_status();
+                clear_status();
                 return _len - len;
             }
-        };
 
-        template<class RPi, class I2C>
-        struct I2CInit
-        {
-            I2CInit()
+        private:
+            static void clear_status()
             {
-                rpi::i2c::Config<RPi, I2C>::init();
-                rpi::i2c::Control<RPi, I2C>::configure_all();
+                auto s_reg = i2c_func<RPi, pins::off>::c_addr();
+                StatusReg sr;
+                sr.transfer_done = 1;
+                sr.err_ack = 1;
+                sr.clkt_stretch_timeout = 1;
+                sr.write_to(s_reg);
             }
-            ~I2CInit()
+
+            static bool fifo_empty()
             {
-                rpi::i2c::Config<RPi, I2C>::end();
+                auto s_reg = i2c_func<RPi, pins::off>::c_addr();
+                return ((StatusReg*)s_reg)->tx_fifo_empty;
+            }
+
+            static void write_fifo(uint8_t b)
+            {
+                auto fifo_reg = i2c_func<RPi, pins::off>::fifo_addr();
+                rpi::tools::set_bits<0, 8>(fifo_reg, b);
+            }
+
+            static uint8_t read_fifo()
+            {
+                auto fifo_reg = i2c_func<RPi, pins::off>::fifo_addr();
+                return rpi::tools::get_bits<0, 8>(fifo_reg) & 0x0ff;
             }
         };
     }

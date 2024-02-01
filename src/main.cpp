@@ -18,10 +18,12 @@ extern "C" void kernel_main()
     using Timer = rpi::timers::Sys<RPi>;
     using D = DisplaySH1106<SPI>;
 
-    using I2C = rpi::RPiBplus::I2C1_Pins;
+    using I2CPins = rpi::RPiBplus::I2C1_Pins;
+    using I2C = rpi::i2c::I2C<RPi, I2CPins>;
 
+    I2C::Init i2cInit;
     uint8_t xxx = 0;
-    auto wr = rpi::i2c::Transfer<RPi, I2C>::write(&xxx, 1);
+    auto wr = I2C::write(&xxx, 1);
     if (std::holds_alternative<uint32_t>(wr))
     {
         //success
