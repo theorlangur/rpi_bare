@@ -269,7 +269,7 @@ namespace rpi
                 cr.i2c_enabled = 1;
                 cr.start_transfer = 1;
                 auto c_reg = funcs::c_addr();
-                *c_reg = *(uint32_t*)&cr;
+                cr.write_to(c_reg);
 
                 StatusReg sr = status();
                 while(len)
@@ -341,7 +341,7 @@ namespace rpi
         private:
             static void clear_status()
             {
-                auto s_reg = funcs::c_addr();
+                auto s_reg = funcs::s_addr();
                 StatusReg sr;
                 sr.transfer_done = 1;
                 sr.err_ack = 1;
@@ -351,7 +351,7 @@ namespace rpi
 
             static bool fifo_empty()
             {
-                auto s_reg = funcs::c_addr();
+                auto s_reg = funcs::s_addr();
                 return ((StatusReg*)s_reg)->tx_fifo_empty;
             }
 
