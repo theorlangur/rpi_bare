@@ -194,7 +194,7 @@ namespace rpi
             static void init()
             {
 #if defined(PI_BARE_FAKE)
-                if constexpr (std::is_same_v<pins, typename RPi::I2C1_Pins>)
+                if constexpr (!std::is_same_v<pins, typename RPi::I2C1_Pins>)
                 {
                     dbg_i2c0_c = funcs::c_addr();
                     dbg_i2c0_s = funcs::s_addr();
