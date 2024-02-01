@@ -3,7 +3,7 @@
 #include "display_tools.h"
 #include <utility>
 
-#define FORWARD_TO_DRIVER(f) void f(auto &&...args) { m_Driver.f(std::forward<decltype(args)>(args)...); }
+#define FORWARD_TO_DRIVER(f) auto f(auto &&...args) -> decltype(m_Driver.f(std::forward<decltype(args)>(args)...)) { return m_Driver.f(std::forward<decltype(args)>(args)...); }
 
 template<class DisplayDriver>
 class BasicRenderer
