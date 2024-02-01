@@ -196,24 +196,24 @@ namespace rpi
 #if defined(PI_BARE_FAKE)
                 if constexpr (std::is_same_v<pins, typename RPi::I2C1_Pins>)
                 {
-                    dbg_i2c0_c = i2c_func<pins::off>::c_addr<RPi>();
-                    dbg_i2c0_s = i2c_func<pins::off>::s_addr<RPi>();
-                    dbg_i2c0_dlen = i2c_func<pins::off>::dlen_addr<RPi>();
-                    dbg_i2c0_a = i2c_func<pins::off>::a_addr<RPi>();
-                    dbg_i2c0_fifo = i2c_func<pins::off>::fifo_addr<RPi>();
-                    dbg_i2c0_div = i2c_func<pins::off>::div_addr<RPi>();
-                    dbg_i2c0_del = i2c_func<pins::off>::del_addr<RPi>();
-                    dbg_i2c0_clkt = i2c_func<pins::off>::clkt_addr<RPi>();
+                    dbg_i2c0_c = funcs::c_addr();
+                    dbg_i2c0_s = funcs::s_addr();
+                    dbg_i2c0_dlen = funcs::dlen_addr();
+                    dbg_i2c0_a = funcs::a_addr();
+                    dbg_i2c0_fifo = funcs::fifo_addr();
+                    dbg_i2c0_div = funcs::div_addr();
+                    dbg_i2c0_del = funcs::del_addr();
+                    dbg_i2c0_clkt = funcs::clkt_addr();
                 }else
                 {
-                    dbg_i2c1_c = i2c_func<pins::off>::c_addr<RPi>();
-                    dbg_i2c1_s = i2c_func<pins::off>::s_addr<RPi>();
-                    dbg_i2c1_dlen = i2c_func<pins::off>::dlen_addr<RPi>();
-                    dbg_i2c1_a = i2c_func<pins::off>::a_addr<RPi>();
-                    dbg_i2c1_fifo = i2c_func<pins::off>::fifo_addr<RPi>();
-                    dbg_i2c1_div = i2c_func<pins::off>::div_addr<RPi>();
-                    dbg_i2c1_del = i2c_func<pins::off>::del_addr<RPi>();
-                    dbg_i2c1_clkt = i2c_func<pins::off>::clkt_addr<RPi>();
+                    dbg_i2c1_c = funcs::c_addr();
+                    dbg_i2c1_s = funcs::s_addr();
+                    dbg_i2c1_dlen = funcs::dlen_addr();
+                    dbg_i2c1_a = funcs::a_addr();
+                    dbg_i2c1_fifo = funcs::fifo_addr();
+                    dbg_i2c1_div = funcs::div_addr();
+                    dbg_i2c1_del = funcs::del_addr();
+                    dbg_i2c1_clkt = funcs::clkt_addr();
                 }
 #endif
                 __sync_synchronize();
