@@ -39,7 +39,7 @@ private:
     using RPiPin = rpi::gpio::PinBplus<P>;
     using Timer = rpi::timers::Sys<rpi::RPiBplus>;
     using PinRT = rpi::gpio::PinRT<rpi::RPiBplus>;
-    using SPI = rpi::spi::Transfer<rpi::RPiBplus, SPIToUse>;
+    using SPI = rpi::spi::SPI<rpi::RPiBplus, SPIToUse>;
 
 
     friend void operator <<(Pins p, bool v)

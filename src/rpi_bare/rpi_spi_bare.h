@@ -133,10 +133,10 @@ namespace rpi
         };
 
         template<class RPi, class pins>
-        struct Control;
+        struct SPI;
 
         template<class RPi>
-        struct Control<RPi, typename RPi::SPI0_Pins>
+        struct SPI<RPi, typename RPi::SPI0_Pins>
         {
             enum class Bits : uint32_t
             {
@@ -155,9 +155,6 @@ namespace rpi
                 cspol1 = 22,
                 cspol2 = 23,
             };
-
-            template<class E>
-            friend uint32_t operator<<(E e, Bits b) { return uint32_t(e) << uint32_t(b); }
 
             static void configure_all(
                 RPi::SPI0_Pins::Chip cs = RPi::SPI0_Pins::Chip::CS0, 
@@ -178,6 +175,100 @@ namespace rpi
                         | chipSelect1 << Bits::cspol1
                         | chipSelect2 << Bits::cspol2;
             }
+
+            static void set_clock_divider(uint32_t div)
+            {
+                tools::mem_barrier m;
+                auto addr = clk_base_addr<RPi>();
+                *addr = div;
+            }
+
+            static void set_speed_div_from_freq(uint32_t f)
+            {
+                set_clock_divider(get_speed_div_from_freq<RPi>(f));
+            }
+
+            static uint8_t transfer_byte(uint8_t b)
+            {
+                auto fifo = fifo_base_addr<RPi>();
+
+                tools::mem_barrier m;
+                clear_fifo(FIFO::All);
+                set_ta(true);
+
+                while(!can_write());
+
+                *fifo = b;
+
+                while(!done());
+
+                uint8_t ret = *fifo;
+                set_ta(false);
+                return ret;
+            }
+
+            static void transfer(const uint8_t *pSend, uint8_t *pRecv, uint32_t len)
+            {
+                auto fifo = fifo_base_addr<RPi>();
+
+                tools::mem_barrier m;
+                clear_fifo(FIFO::All);
+                set_ta(true);
+
+                uint32_t sendLen = 0;
+                uint32_t recvLen = 0;
+
+                while((sendLen < len) || (recvLen < len))
+                {
+                    while(can_write() && (sendLen < len))
+                    {
+                        *fifo = pSend[sendLen];
+                        ++sendLen;
+                    }
+
+                    while(can_read() && (recvLen < len))
+                    {
+                        pRecv[recvLen] = *fifo;
+                        ++recvLen;
+                    }
+                }
+
+                while(!done())
+                    drain_read();
+                set_ta(false);
+            }
+
+            static void send(const uint8_t *pSend, uint32_t len)
+            {
+                auto fifo = fifo_base_addr<RPi>();
+
+                tools::mem_barrier m;
+                clear_fifo(FIFO::All);
+                set_ta(true);
+
+                for(uint32_t sendLen = 0; sendLen < len; ++sendLen)
+                {
+                    while(!can_write());
+
+                    *fifo = pSend[sendLen];
+                    drain_read();
+                }
+
+                while(!done())
+                    drain_read();
+
+                set_ta(false);
+            }
+        private:
+            template<class E>
+            friend uint32_t operator<<(E e, Bits b) { return uint32_t(e) << uint32_t(b); }
+
+            static void drain_read()
+            {
+                while(can_read())
+                    (void) *fifo_base_addr<RPi>();
+            }
+
 
             static void clear_fifo(FIFO f)
             {
@@ -225,23 +316,12 @@ namespace rpi
                 auto addr = cs_base_addr<RPi>();
                 return rpi::tools::get_bits<Bits::rxr, 1>(*addr);
             }
-
-            static void set_clock_divider(uint32_t div)
-            {
-                tools::mem_barrier m;
-                auto addr = clk_base_addr<RPi>();
-                *addr = div;
-            }
-
-            static void set_speed_div_from_freq(uint32_t f)
-            {
-                set_clock_divider(get_speed_div_from_freq<RPi>(f));
-            }
         };
 
         template<class RPi>
-        struct Control<RPi, typename RPi::SPI1_Pins>
+        struct SPI<RPi, typename RPi::SPI1_Pins>
         {
+        private:
             enum class Bits : uint32_t
             {
                 enalbeSPI1 = 1,
@@ -321,6 +401,10 @@ namespace rpi
             inline static Control0 g_Control0;
             inline static Control1 g_Control1;
 
+            template<class E>
+            friend uint32_t operator<<(E e, Bits b) { return uint32_t(e) << uint32_t(b); }
+        public:
+
             static void set_speed_div_from_freq(uint32_t f)
             {
                 set_clock_divider(get_speed_div_from_freq<RPi>(f));
@@ -330,9 +414,6 @@ namespace rpi
             {
                 g_Control0.m_bits.speed = d;
             }
-
-            template<class E>
-            friend uint32_t operator<<(E e, Bits b) { return uint32_t(e) << uint32_t(b); }
 
             static void configure_all(
                 RPi::SPI1_Pins::Chip cs = RPi::SPI1_Pins::Chip::CS0, 
@@ -352,6 +433,77 @@ namespace rpi
                 end_transfer();
             }
 
+            static uint8_t transfer_byte(uint8_t b)
+            {
+                auto io = aux_spi1_io_addr<RPi>();
+                begin_transfer(8);
+                rpi::tools::set_bits<24, 8>(io, b);
+                while(!done());
+                b = *io & 0xff;
+                end_transfer();
+                return b;
+            }
+            
+            static void send(const uint8_t *pSend, uint32_t len)
+            {
+                auto io = aux_spi1_io_addr<RPi>();
+                auto txhold = aux_spi1_txhold_addr<RPi>();
+                begin_transfer(0);//variable width
+                while(len)
+                {
+                    while(is_full());
+                    uint32_t cnt = rpi::tools::min(len, uint32_t(3));
+                    uint32_t w = rpi::tools::set_bits<24, 5>(uint32_t(0), cnt * 8);
+                    for(int i = 0; i < cnt; ++i, ++pSend)
+                        w |= (*pSend) << ((2 - i) * 8);
+                    len -= cnt;
+                    if (len)
+                        *txhold = w;
+                    else
+                        *io = w;
+                    while(!done());
+
+                    (void)*io;
+                }
+                end_transfer();
+            }
+            
+            static void transfer(const uint8_t *pSend, uint8_t *pRecv, uint32_t len)
+            {
+                auto io = aux_spi1_io_addr<RPi>();
+                auto txhold = aux_spi1_txhold_addr<RPi>();
+                uint32_t tx_len = len, rx_len = len;
+                begin_transfer(0);//variable width
+                while(tx_len || rx_len)
+                {
+                    while(can_write() && tx_len)
+                    {
+                        uint32_t cnt = rpi::tools::min(tx_len, uint32_t(3));
+                        uint32_t w = rpi::tools::set_bits<24, 8>(uint32_t(0), cnt * 24);
+                        for(int i = 0; i < cnt; ++i, ++pSend)
+                            w |= (*pSend) << ((2 - i) * 8);
+                        tx_len -= cnt;
+                        if (len)
+                            *txhold = w;
+                        else
+                            *io = w;
+                    }
+
+                    while((can_read() || !done()) && rx_len)
+                    {
+                        uint32_t cnt = rpi::tools::min(rx_len, uint32_t(3));
+                        uint32_t w = *io;
+                        if (pRecv)
+                        {
+                            for(int i = 0; i < cnt; ++i, ++pRecv)
+                                *pRecv = (w >> ((2-i) * 8)) & 0xff;
+                        }
+                        rx_len -= cnt;
+                    }
+                }
+                end_transfer();
+            }
+        private:
             static void begin_transfer(uint8_t bits_to_transfer)
             {
                 auto cntl0 = aux_spi1_cntl_addr<RPi>();
@@ -409,182 +561,19 @@ namespace rpi
             }
         };
 
-        template<class RPi, class pins>
-        struct Transfer;
-
-        template<class RPi>
-        struct Transfer<RPi, typename RPi::SPI1_Pins>
-        {
-            using ctrl = Control<RPi, typename RPi::SPI1_Pins>;
-
-            static uint8_t transfer_byte(uint8_t b)
-            {
-                auto io = aux_spi1_io_addr<RPi>();
-                ctrl::begin_transfer(8);
-                rpi::tools::set_bits<24, 8>(io, b);
-                while(!ctrl::done());
-                b = *io & 0xff;
-                ctrl::end_transfer();
-                return b;
-            }
-            
-            static void send(const uint8_t *pSend, uint32_t len)
-            {
-                auto io = aux_spi1_io_addr<RPi>();
-                auto txhold = aux_spi1_txhold_addr<RPi>();
-                ctrl::begin_transfer(0);//variable width
-                while(len)
-                {
-                    while(ctrl::is_full());
-                    uint32_t cnt = rpi::tools::min(len, uint32_t(3));
-                    uint32_t w = rpi::tools::set_bits<24, 5>(uint32_t(0), cnt * 8);
-                    for(int i = 0; i < cnt; ++i, ++pSend)
-                        w |= (*pSend) << ((2 - i) * 8);
-                    len -= cnt;
-                    if (len)
-                        *txhold = w;
-                    else
-                        *io = w;
-                    while(!ctrl::done());
-
-                    (void)*io;
-                }
-                ctrl::end_transfer();
-            }
-            
-            static void transfer(const uint8_t *pSend, uint8_t *pRecv, uint32_t len)
-            {
-                auto io = aux_spi1_io_addr<RPi>();
-                auto txhold = aux_spi1_txhold_addr<RPi>();
-                uint32_t tx_len = len, rx_len = len;
-                ctrl::begin_transfer(0);//variable width
-                while(tx_len || rx_len)
-                {
-                    while(ctrl::can_write() && tx_len)
-                    {
-                        uint32_t cnt = rpi::tools::min(tx_len, uint32_t(3));
-                        uint32_t w = rpi::tools::set_bits<24, 8>(uint32_t(0), cnt * 24);
-                        for(int i = 0; i < cnt; ++i, ++pSend)
-                            w |= (*pSend) << ((2 - i) * 8);
-                        tx_len -= cnt;
-                        if (len)
-                            *txhold = w;
-                        else
-                            *io = w;
-                    }
-
-                    while((ctrl::can_read() || !ctrl::done()) && rx_len)
-                    {
-                        uint32_t cnt = rpi::tools::min(rx_len, uint32_t(3));
-                        uint32_t w = *io;
-                        if (pRecv)
-                        {
-                            for(int i = 0; i < cnt; ++i, ++pRecv)
-                                *pRecv = (w >> ((2-i) * 8)) & 0xff;
-                        }
-                        rx_len -= cnt;
-                    }
-                }
-                ctrl::end_transfer();
-            }
-        };
-
-        template<class RPi>
-        struct Transfer<RPi, typename RPi::SPI0_Pins>
-        {
-            using ctrl = Control<RPi, typename RPi::SPI0_Pins>;
-            static uint8_t transfer_byte(uint8_t b)
-            {
-                auto fifo = fifo_base_addr<RPi>();
-
-                tools::mem_barrier m;
-                ctrl::clear_fifo(FIFO::All);
-                ctrl::set_ta(true);
-
-                while(!ctrl::can_write());
-
-                *fifo = b;
-
-                while(!ctrl::done());
-
-                uint8_t ret = *fifo;
-                ctrl::set_ta(false);
-                return ret;
-            }
-
-            static void transfer(const uint8_t *pSend, uint8_t *pRecv, uint32_t len)
-            {
-                auto fifo = fifo_base_addr<RPi>();
-
-                tools::mem_barrier m;
-                ctrl::clear_fifo(FIFO::All);
-                ctrl::set_ta(true);
-
-                uint32_t sendLen = 0;
-                uint32_t recvLen = 0;
-
-                while((sendLen < len) || (recvLen < len))
-                {
-                    while(ctrl::can_write() && (sendLen < len))
-                    {
-                        *fifo = pSend[sendLen];
-                        ++sendLen;
-                    }
-
-                    while(ctrl::can_read() && (recvLen < len))
-                    {
-                        pRecv[recvLen] = *fifo;
-                        ++recvLen;
-                    }
-                }
-
-                while(!ctrl::done())
-                    drain_read();
-                ctrl::set_ta(false);
-            }
-
-            static void drain_read()
-            {
-                while(ctrl::can_read())
-                    (void) *fifo_base_addr<RPi>();
-            }
-
-            static void send(const uint8_t *pSend, uint32_t len)
-            {
-                auto fifo = fifo_base_addr<RPi>();
-
-                tools::mem_barrier m;
-                ctrl::clear_fifo(FIFO::All);
-                ctrl::set_ta(true);
-
-                for(uint32_t sendLen = 0; sendLen < len; ++sendLen)
-                {
-                    while(!ctrl::can_write());
-
-                    *fifo = pSend[sendLen];
-                    drain_read();
-                }
-
-                while(!ctrl::done())
-                    drain_read();
-
-                ctrl::set_ta(false);
-            }
-        };
-
-        template<class RPi, class SPI>
+        template<class RPi, class SPIPins>
         struct SPIInit
         {
-            SPIInit(typename SPI::Chip cs, uint32_t freq=1000'000)
+            SPIInit(typename SPIPins::Chip cs, uint32_t freq=1000'000)
             {
-                rpi::spi::Config<RPi, SPI>::init();
+                rpi::spi::Config<RPi, SPIPins>::init();
                 //rpi::spi::Control<RPi, SPIPins>::set_clock_divider(128);
-                rpi::spi::Control<RPi, SPI>::set_speed_div_from_freq(freq);
-                rpi::spi::Control<RPi, SPI>::configure_all(cs);
+                rpi::spi::SPI<RPi, SPIPins>::set_speed_div_from_freq(freq);
+                rpi::spi::SPI<RPi, SPIPins>::configure_all(cs);
             }
             ~SPIInit()
             {
-                rpi::spi::Config<RPi, SPI>::end();
+                rpi::spi::Config<RPi, SPIPins>::end();
             }
         };
     }
