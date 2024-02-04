@@ -2,7 +2,7 @@
 #define RPI_I2C_BARE_H_
 
 #include <algorithm>
-#include <variant>
+#include <expected>
 
 #include "rpi_bare.h"
 #include "rpi_gpio_bare.h"
@@ -205,7 +205,7 @@ namespace rpi
                 Err = 1,
                 Timeout = 2
             };
-            using TransferResult = std::variant<uint32_t, Error>;
+            using TransferResult = std::expected<uint32_t, Error>;
 
             struct Init
             {

@@ -24,7 +24,7 @@ extern "C" void kernel_main()
     I2C::Init i2cInit;
     uint8_t xxx = 0;
     auto wr = I2C::write(&xxx, 1);
-    if (std::holds_alternative<uint32_t>(wr))
+    if (wr.has_value())
     {
         //success
     }
