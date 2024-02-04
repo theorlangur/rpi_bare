@@ -330,7 +330,7 @@ namespace display::font::f5x7
     constinit const auto sn = SYMBOL(
         ".....\n"
         ".....\n"
-        "*.**.\n"
+        "****.\n"
         "*...*\n"
         "*...*\n"
         "*...*\n"
@@ -460,7 +460,7 @@ namespace display::font::f5x7
         "*...*\n"
         "*...*\n"
         "*...*\n"
-        ".**.*"
+        ".***."
         );
     constinit const auto sU = SYMBOL(
         "*...*\n"
