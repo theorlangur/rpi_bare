@@ -51,6 +51,18 @@ namespace rpi
             {
                 delay_microseconds(ms * 1000);
             }
+
+            class TimeTest
+            {
+            public:
+                TimeTest():m_Start(now()) { }
+                uint64_t time_passed() const { return now() - m_Start; }
+                void mark() { m_Measured = time_passed(); }
+                auto measured() { return m_Measured; }
+            private:
+                uint64_t m_Start;
+                uint64_t m_Measured;
+            };
         };
     }
 }
