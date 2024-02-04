@@ -23,6 +23,12 @@ namespace display
             uint8_t y;
         };
 
+        struct Rect
+        {
+            Point p;
+            Dims d;
+        };
+
         struct SymbolHeader
         {
             const uint8_t *pData;
