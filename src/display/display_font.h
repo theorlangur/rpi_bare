@@ -1,5 +1,6 @@
 #ifndef DISPLAY_FONT_H_
 #define DISPLAY_FONT_H_
+#include <string_view>
 #include "display_tools.h"
 #include "display_render.h"
 
@@ -17,11 +18,13 @@ namespace display
         public:
             FontRenderer(DisplayDriver &d):BasicRenderer<DisplayDriver>(d){}
 
-            display::tools::Point draw_char(display::tools::Point p, char c)
+            display::tools::Point draw_char(display::tools::Point p, char c, uint8_t off = 0)
             {
+                if (c == '\n')
+                    return {0, uint8_t(p.y + g_Chars['A'].size.h + 1)};
                 const auto &s = g_Chars[c];
                 this->render_symbol(p, s);
-                p.x += s.size.w;
+                p.x += s.size.w + off;
                 return p;
             }
 
@@ -43,6 +46,24 @@ namespace display
                         p.y += g_Chars['A'].size.h + 1;
                     }
                     ++pStr;
+                }
+                return p;
+            }
+
+            display::tools::Point draw_str(display::tools::Point p, std::string_view const& sv)
+            {
+                for(char c : sv)
+                {
+                    if (c != '\n')
+                    {
+                        auto const& s = g_Chars[c];
+                        this->render_symbol(p, s);
+                        p.x += s.size.w + 1;
+                    }else
+                    {
+                        p.x = 0;
+                        p.y += g_Chars['A'].size.h + 1;
+                    }
                 }
                 return p;
             }
@@ -85,18 +106,17 @@ namespace display
 
             display::tools::Point draw_uint(display::tools::Point p, uint32_t v)
             {
-                uint8_t digits[16];
-                uint8_t digit_count = 0;
+                uint8_t digits[16] = {'0'};
+                uint8_t digit_count = v == 0 ? 1 : 0;
                 while(v)
                 {
-                    digits[digit_count++] = v % 10;
+                    digits[digit_count++] = '0' + v % 10;
                     v /= 10;
                 }
 
-                display::tools::Point off = p;
-                for(uint8_t i = 0; i < digit_count; ++i, ++off.x)
-                    off = draw_char(off, '0' + digits[digit_count - i - 1]);
-                return off;
+                for(uint8_t i = 0; i < digit_count; ++i)
+                    p = draw_char(p, digits[digit_count - i - 1], 1);
+                return p;
             }
 
             display::tools::Point draw_int(display::tools::Point p, int32_t v)
