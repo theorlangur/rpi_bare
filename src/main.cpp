@@ -9,6 +9,7 @@
 #include "tools/formatter.h"
 
 #include "display/icons/display_icons_misc.h"
+#include "display/display_formatter.h"
 
 extern "C" void kernel_main()
 {
@@ -49,7 +50,9 @@ extern "C" void kernel_main()
     ttSPIInit.mark();
     //3. Display init
     Timer::TimeTest ttDisplayInit;
+#if !defined(PI_BARE_FAKE)
     d.init();
+#endif
     ttDisplayInit.mark();
 
     Timer::TimeTest ttFontsInit;
@@ -65,11 +68,11 @@ extern "C" void kernel_main()
     using Renderer = display::font::FontRenderer<decltype(d)>;
     Renderer r(d);
 
-    auto fmtr = tools::format_to(r, "custom {} format {} string", 1, 2);
+    auto to_display = display::DisplayFormatter{r, {0,0}};
 
     r.clear();
     Timer::TimeTest ttPrint;
-    r.print_all({0,0}
+     /*r.print_all({0,0}
             , "Init:\n",
             "RPI:",ttRpiInit.measured(),
             "\nDispCTR:",ttCostructDisplayInit.measured(),
@@ -79,6 +82,24 @@ extern "C" void kernel_main()
             "\nFonts:",ttFontsInit.measured(),
             "\nIcons:",ttIconsInit.measured()
             );
+            */
+    tools::format_to(to_display, 
+    "Init:"
+    "\nRPI:{}"
+    "\nDispCTR:{}"
+    "\nDispGPIO:{}"
+    "\nSPI:{}"
+    "\nDisp:{}"
+    "\nFonts:{}"
+    "\nIcons:{}"
+    , ttRpiInit.measured()
+    , ttCostructDisplayInit.measured()
+    , ttDisplayGPIOInit.measured()
+    , ttSPIInit.measured()
+    , ttDisplayInit.measured()
+    , ttFontsInit.measured()
+    , ttIconsInit.measured()
+    );
     ttPrint.mark();
     /*r.render_symbol({0,0}, symTrizub, {5,2}, {7,9});
     r.draw_char({10,0}, '0');
