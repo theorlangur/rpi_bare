@@ -15,28 +15,29 @@ namespace tools
         CouldNotFormat,
     };
 
+    template<typename Dest>
+    concept FormatDestination = requires(Dest a)
+    {
+        {a('0')};//being able to 'output' a single character
+        {a(std::string_view{})};//being able to 'output' a string
+    };
+
     template<class T>
     struct formatter_t;
 
     template<std::integral T>
     struct formatter_t<T>
     {
-        template<class Dest>
+        template<FormatDestination Dest>
         static bool format_to(Dest &&dst, std::string_view const& fmtStr, T &&v)
         {
-            uint8_t t[16];
-            uint8_t d = 0;
-            if (!v)
-            {
-                dst('0');
-                return true;
-            }
+            uint8_t t[16]={'0'};
+            uint8_t d = v == 0 ? 1 : 0;
 
             while(v)
             {
-                t[d] = v % 10;
+                t[d++] = '0' + (v % 10);
                 v /= 10;
-                ++d;
             }
             for(uint8_t i = 0; i < d; ++i)
                 dst(t[d - i - 1]);
@@ -45,26 +46,33 @@ namespace tools
     };
 
     template<>
+    struct formatter_t<char>
+    {
+        template<FormatDestination Dest>
+        static bool format_to(Dest &&dst, std::string_view const& fmtStr, char c) { dst(c); return true; }
+    };
+
+    template<>
     struct formatter_t<const char*>
     {
-        template<class Dest>
+        template<FormatDestination Dest>
         static bool format_to(Dest &&dst, std::string_view const& fmtStr, const char *pStr) { dst(pStr); return true; }
     };
 
     template<>
     struct formatter_t<std::string_view>
     {
-        template<class Dest>
+        template<FormatDestination Dest>
         static bool format_to(Dest &&dst, std::string_view const& fmtStr, std::string_view sv) { dst(sv); return true; }
     };
 
-    template<class Dest, class... Args>
+    template<FormatDestination Dest, class... Args>
     size_t format_to(Dest &&dst, std::string_view f, Args &&...args)
     {
         return f.size();
     }
 
-    template<size_t I, class Dest, class T, class... Rest>
+    template<size_t I, FormatDestination Dest, class T, class... Rest>
     bool format_nth_arg(size_t i, std::string_view const& fmtStr, Dest &&dst, T &&arg, Rest &&...args)
     {
         //error checking?
@@ -77,7 +85,7 @@ namespace tools
             return false;
     }
 
-    template<class Dest, class... Args>
+    template<FormatDestination Dest, class... Args>
     std::expected<size_t, FormatError> format_to(Dest &&dst, const char *pStr, Args &&...args)
     {
         auto pBegin = pStr;
@@ -125,6 +133,7 @@ namespace tools
                         std::string_view fmtStr(pFmtBegin, pStr++);
                         if (!format_nth_arg<0>(targ, fmtStr, std::forward<Dest>(dst), std::forward<Args>(args)...))
                             return std::unexpected(FormatError::CouldNotFormat);
+                        pBegin = pStr;
                     }
                     else
                         return std::unexpected{explicitNumber ? FormatError::InvalidFormatArgumentNumber : FormatError::NotEnoughFormatArguments};
