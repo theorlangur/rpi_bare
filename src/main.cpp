@@ -83,7 +83,7 @@ extern "C" void kernel_main()
             "\nIcons:",ttIconsInit.measured()
             );
             */
-    tools::format_to(to_display, 
+    auto syms = tools::format_to(to_display, 
     "Init:"
     "\nRPI:{}"
     "\nDispCTR:{}"
@@ -111,7 +111,9 @@ extern "C" void kernel_main()
     r.show();
     Timer::delay_ms(20000);
     r.clear();
-    r.print_all({0,0} , "Previous printing took:\n" ,ttPrint.measured(), " us");
+    to_display.p = {0,0};
+    tools::format_to(to_display, "Prev printing took:\n{}us\n{} symbols printed", ttPrint.measured(), syms);
+    //r.print_all({0,0} , "Previous printing took:\n" ,ttPrint.measured(), " us");
     r.show();
     Timer::delay_ms(20000);
 
