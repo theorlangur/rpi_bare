@@ -6,6 +6,8 @@
 #include "rpi_bare/rpi_timers_bare.h"
 #include "rpi_bare/rpi_i2c_bare.h"
 
+#include "tools/formatter.h"
+
 #include "display/icons/display_icons_misc.h"
 
 extern "C" void kernel_main()
@@ -20,6 +22,7 @@ extern "C" void kernel_main()
 
     using I2CPins = rpi::RPiBplus::I2C1_Pins;
     using I2C = rpi::i2c::I2C<RPi, I2CPins>;
+
 
     /*I2C::Init i2cInit;
     uint8_t xxx = 0;
@@ -61,6 +64,8 @@ extern "C" void kernel_main()
 
     using Renderer = display::font::FontRenderer<decltype(d)>;
     Renderer r(d);
+
+    auto fmtr = tools::format_to(r, "custom {} format {} string", 1, 2);
 
     r.clear();
     Timer::TimeTest ttPrint;

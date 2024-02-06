@@ -9,6 +9,7 @@ list(APPEND SRC_FILES
     src/main.cpp
     src/display/display_font.cpp
     src/display/icons/display_icons_misc.cpp
+    src/tools/bare_defs.cpp
     )
 
 add_executable(bare_oled ${SRC_FILES})
