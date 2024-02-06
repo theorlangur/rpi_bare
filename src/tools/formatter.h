@@ -31,16 +31,17 @@ namespace tools
         template<FormatDestination Dest>
         static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, T v)
         {
-            uint8_t t[16]={'0'};
+            char t[16];
+            constexpr uint8_t n = std::size(t);
+            t[15] = '0';
             uint8_t d = v == 0 ? 1 : 0;
 
             while(v)
             {
-                t[d++] = '0' + (v % 10);
+                t[n - ++d] = '0' + (v % 10);
                 v /= 10;
             }
-            for(uint8_t i = 0; i < d; ++i)
-                dst(t[d - i - 1]);
+            dst(std::string_view(t + n - d, d));
             return d;
         }
     };
