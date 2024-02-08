@@ -86,11 +86,11 @@ extern "C" void kernel_main()
     auto syms = tools::format_to(to_display, 
     "Init:"
     "\nRPI:{}"
-    "\nDispCTR:{}"
+    "\nDispCTR:{:x2}"
     "\nDispGPIO:{}"
-    "\nSPI:{}"
+    "\nSPI:{:x1}"
     "\nDisp:{}"
-    "\nFonts:{}"
+    "\nFonts:{:x2}"
     "\nIcons:{}"
     , ttRpiInit.measured()
     , ttCostructDisplayInit.measured()
@@ -112,7 +112,7 @@ extern "C" void kernel_main()
     Timer::delay_ms(20000);
     r.clear();
     to_display.p = {0,0};
-    tools::format_to(to_display, "Prev printing took:\n{}us\n{} symbols printed", ttPrint.measured(), syms);
+    tools::format_to(to_display, "Prev printing took:\n{:x}us\n{} symbols printed", ttPrint.measured(), syms);
     //r.print_all({0,0} , "Previous printing took:\n" ,ttPrint.measured(), " us");
     r.show();
     Timer::delay_ms(20000);

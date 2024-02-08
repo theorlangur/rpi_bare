@@ -31,6 +31,39 @@ namespace tools
         template<FormatDestination Dest>
         static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, T v)
         {
+            if (!fmtStr.empty())
+            {
+                constexpr T mask = 0x0f;
+                uint8_t sz = sizeof(T);
+                if (fmtStr.size() > 1)
+                {
+                    auto c = fmtStr[1];
+                    if (c >= '1' && c <= '8')
+                        sz = c - '0';
+                }
+                const uint8_t n = sz * 2;
+                if (fmtStr[0] == 'x')
+                {
+                    dst("0x");
+                    for(uint8_t i = 0; i < n; ++i)
+                    {
+                        uint8_t digit = (v >> (n - i - 1) * 4) & mask;
+                        char c = digit < 10 ? ('0' + digit) : ('a' + digit - 10);
+                        dst(c);
+                    }
+                }else
+                {
+                    dst("0X");
+                    for(uint8_t i = 0; i < n; ++i)
+                    {
+                        uint8_t digit = (v >> (n - i - 1) * 4) & mask;
+                        char c = digit < 10 ? ('0' + digit) : ('A' + digit - 10);
+                        dst(c);
+                    }
+                }
+                return n + 2;
+            }
+
             char t[16];
             constexpr uint8_t n = std::size(t);
             t[15] = '0';
