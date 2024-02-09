@@ -34,14 +34,7 @@ namespace tools
             if (!fmtStr.empty())
             {
                 constexpr T mask = 0x0f;
-                uint8_t sz = sizeof(T);
-                if (fmtStr.size() > 1)
-                {
-                    auto c = fmtStr[1];
-                    if (c >= '1' && c <= '8')
-                        sz = c - '0';
-                }
-                const uint8_t n = sz * 2;
+                constexpr const uint8_t n = sizeof(T) * 2;
                 if (fmtStr[0] == 'x')
                 {
                     dst("0x");

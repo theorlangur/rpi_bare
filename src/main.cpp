@@ -86,18 +86,18 @@ extern "C" void kernel_main()
     auto syms = tools::format_to(to_display, 
     "Init:"
     "\nRPI:{}"
-    "\nDispCTR:{:x2}"
+    "\nDispCTR:{:x}"
     "\nDispGPIO:{}"
-    "\nSPI:{:x1}"
+    "\nSPI:{:x}"
     "\nDisp:{}"
-    "\nFonts:{:x2}"
+    "\nFonts:{:x}"
     "\nIcons:{}"
     , ttRpiInit.measured()
-    , ttCostructDisplayInit.measured()
+    , (uint16_t)ttCostructDisplayInit.measured()
     , ttDisplayGPIOInit.measured()
-    , ttSPIInit.measured()
+    , (uint8_t)ttSPIInit.measured()
     , ttDisplayInit.measured()
-    , ttFontsInit.measured()
+    , (uint16_t)ttFontsInit.measured()
     , ttIconsInit.measured()
     );
     ttPrint.mark();
@@ -112,7 +112,7 @@ extern "C" void kernel_main()
     Timer::delay_ms(20000);
     r.clear();
     to_display.p = {0,0};
-    tools::format_to(to_display, "Prev printing took:\n{:x}us\n{} symbols printed", ttPrint.measured(), syms);
+    tools::format_to(to_display, "Prev printing took:\n{:x}us\n{} symbols printed", (uint16_t)ttPrint.measured(), syms);
     //r.print_all({0,0} , "Previous printing took:\n" ,ttPrint.measured(), " us");
     r.show();
     Timer::delay_ms(20000);
