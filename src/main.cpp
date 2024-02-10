@@ -71,6 +71,23 @@ extern "C" void kernel_main()
 
     r.clear();
     {
+        I2C::Init i2cInit;
+        uint8_t adcAddr = 0x48;
+        I2C::set_slave_addr(adcAddr);
+        uint8_t reg = 0x01;//config
+        if (auto res = I2C::write(&reg, 1))
+        {
+            uint16_t val = 0;
+            if ((res = I2C::read((uint8_t*)&val, 2)))
+                tools::format_to(to_display, "ADC config:\n{:x}", val);
+            else
+                tools::format_to(to_display, "Failed to read:\n{}", res);
+        }else
+            tools::format_to(to_display, "Failed to write\nreg addr:\n{}", res);
+    }
+    r.show();
+    Timer::delay_ms(20000);
+    /*{
         tools::format_to(to_display, "Scanning i2c:");
         auto statusPoint = to_display.p;
         tools::format_to(to_display, "\n");
@@ -79,10 +96,12 @@ extern "C" void kernel_main()
         constexpr size_t stride = 4;
         size_t n = 0;
         I2C::Init i2cInit;
+        uint8_t dummy = 0;
         for(uint8_t i = 1; i < 127; ++i)
         {
             r.draw_uint(statusPoint, i);
             r.show_part(statusPoint.x,statusPoint.y,28,9);
+            I2C::set_slave_addr(i);
             if (I2C::write(nullptr, 0))
             {
                 tools::format_to(to_display, "{:x} ", i);
@@ -98,6 +117,7 @@ extern "C" void kernel_main()
         r.show();
         Timer::delay_ms(20000);
     }
+    */
 
     r.clear();
     Timer::TimeTest ttPrint;
