@@ -227,6 +227,9 @@ namespace tools
                 }
                 else
                 {
+                    if constexpr (sizeof...(args) == 0)
+                        return std::unexpected{FormatError::NotEnoughFormatArguments};
+
                     res += pStr - pBegin;
                     dst(std::string_view(pBegin, pStr++));
                     //parse format argument
@@ -248,23 +251,26 @@ namespace tools
                     }
 
 
-                    if (targ < sizeof...(args))
+                    if constexpr (sizeof...(args) > 0)
                     {
-                        if (*pStr == ':') ++pStr;
-                        auto pFmtBegin = pStr;
-                        while(*pStr && *pStr != '}')
-                            ++pStr;
-                        if (*pStr != '}')
-                            return std::unexpected(FormatError::InvalidFormatString);
-                        std::string_view fmtStr(pFmtBegin, pStr);
-                        if (auto r = format_nth_arg<0>(targ, fmtStr, std::forward<Dest>(dst), std::forward<Args>(args)...); !r)
-                            return r;
+                        if (targ < sizeof...(args))
+                        {
+                            if (*pStr == ':') ++pStr;
+                            auto pFmtBegin = pStr;
+                            while(*pStr && *pStr != '}')
+                                ++pStr;
+                            if (*pStr != '}')
+                                return std::unexpected(FormatError::InvalidFormatString);
+                            std::string_view fmtStr(pFmtBegin, pStr);
+                            if (auto r = format_nth_arg<0>(targ, fmtStr, std::forward<Dest>(dst), std::forward<Args>(args)...); !r)
+                                return r;
+                            else
+                                res += *r;
+                            pBegin = pStr + 1;
+                        }
                         else
-                            res += *r;
-                        pBegin = pStr + 1;
+                            return std::unexpected{explicitNumber ? FormatError::InvalidFormatArgumentNumber : FormatError::NotEnoughFormatArguments};
                     }
-                    else
-                        return std::unexpected{explicitNumber ? FormatError::InvalidFormatArgumentNumber : FormatError::NotEnoughFormatArguments};
                 }
             }
             prev = *pStr++;
