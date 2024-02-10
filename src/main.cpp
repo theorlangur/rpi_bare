@@ -24,7 +24,6 @@ extern "C" void kernel_main()
     using I2CPins = rpi::RPiBplus::I2C1_Pins;
     using I2C = rpi::i2c::I2C<RPi, I2CPins>;
 
-
     /*I2C::Init i2cInit;
     uint8_t xxx = 0;
     auto wr = I2C::write(&xxx, 1);
@@ -69,6 +68,29 @@ extern "C" void kernel_main()
     Renderer r(d);
 
     auto to_display = display::DisplayFormatter{r, {0,0}};
+
+    r.clear();
+    {
+        tools::format_to(to_display, "Scanning i2c:\n");
+        r.show();
+        size_t n = 0;
+        I2C::Init i2cInit;
+        for(uint8_t i = 1; i < 127; ++i)
+        {
+            if (I2C::write(nullptr, 0))
+            {
+                tools::format_to(to_display, "{:x} ", i);
+                if ((++n) % 5 == 0)
+                    tools::format_to(to_display, "\n");
+                r.show();
+            }
+        }
+        if (n % 5 != 0)
+            tools::format_to(to_display, "\n");
+        tools::format_to(to_display, "Done!");
+        r.show();
+        Timer::delay_ms(20000);
+    }
 
     r.clear();
     Timer::TimeTest ttPrint;
