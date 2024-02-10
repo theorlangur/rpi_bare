@@ -284,7 +284,7 @@ namespace rpi
                 clear_status();
                 auto dlen_reg = funcs::dlen_addr();
                 auto preload_len = std::min(len, max_fifo_size);
-                rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, preload_len);
+                rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, len);
                 uint32_t _len = len;
                 len -= preload_len;
                 while(preload_len--)
@@ -330,6 +330,7 @@ namespace rpi
                 clear_status();
                 auto dlen_reg = funcs::dlen_addr();
                 auto _len = len;
+                rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, len);
 
                 ControlReg cr;
                 cr.read = 1;
@@ -338,14 +339,19 @@ namespace rpi
                 auto c_reg = funcs::c_addr();
                 cr.write_to(c_reg);
                 StatusReg sr = status();
-                while(!sr.transfer_done)
+                while(len && !sr.transfer_done)
                 {
-                    while(len && sr.rx_has_data)
+                    if (sr.rx_has_data)
                     {
-                        *pRecv++ = read_fifo();
-                        --len;
+                        do
+                        {
+                            *pRecv++ = read_fifo();
+                            --len;
+                            sr = status();
+                        }
+                        while(len && sr.rx_has_data);
+                    }else
                         sr = status();
-                    }
                 }
 
                 while(len && sr.rx_has_data)
@@ -370,8 +376,10 @@ namespace rpi
                 auto s_reg = funcs::s_addr();
                 StatusReg sr;
                 sr.transfer_done = 1;
+#if !defined(PI_BARE_FAKE)
                 sr.err_ack = 1;
                 sr.clkt_stretch_timeout = 1;
+#endif
                 sr.write_to(s_reg);
             }
 
