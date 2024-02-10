@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <type_traits>
+#include <concepts>
 
 namespace rpi
 {
@@ -82,6 +83,25 @@ namespace rpi
         inline constexpr uint16_t swap_bytes(uint16_t v)
         {
             return ((v >> 8) & 0xff) | ((v << 8) & 0xff00);
+        }
+
+        inline constexpr uint32_t swap_bytes(uint32_t v)
+        {
+            //0x12345678
+            //0x78563412
+            return ((v >> 24) & 0xff) 
+                | ((v >> 16) & 0xff00)
+                | ((v << 8) & 0xff0000)
+                | ((v << 24) & 0xff000000);
+        }
+
+        template<std::integral T>
+        inline constexpr T swap_bytes(T v)
+        {
+            uint8_t *pBytes = reinterpret_cast<uint8_t*>(&v);
+            for(size_t i = 0; i < sizeof(T); ++i)
+                std::swap(pBytes[i], pBytes[sizeof(T) - i - 1]);
+            return v;
         }
 
         inline void delay_at_least_cycles(int cycles)
