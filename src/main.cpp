@@ -71,12 +71,17 @@ extern "C" void kernel_main()
 
     r.clear();
     {
-        tools::format_to(to_display, "Scanning i2c:\n");
+        tools::format_to(to_display, "Scanning i2c:");
+        auto statusPoint = to_display.p;
+        tools::format_to(to_display, "\n");
         r.show();
+        statusPoint.x += 2;
         size_t n = 0;
         I2C::Init i2cInit;
         for(uint8_t i = 1; i < 127; ++i)
         {
+            r.draw_uint(statusPoint, i);
+            r.show_part(statusPoint.x,statusPoint.y,28,9);
             if (I2C::write(nullptr, 0))
             {
                 tools::format_to(to_display, "{:x} ", i);
@@ -84,10 +89,11 @@ extern "C" void kernel_main()
                     tools::format_to(to_display, "\n");
                 r.show();
             }
+            Timer::delay_ms(200);
         }
         if (n % 5 != 0)
             tools::format_to(to_display, "\n");
-        tools::format_to(to_display, "Done!");
+        tools::format_to(to_display, "Found: {}", n);
         r.show();
         Timer::delay_ms(20000);
     }
