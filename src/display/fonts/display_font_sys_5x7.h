@@ -96,8 +96,8 @@ namespace display::font::f5x7
     constinit const auto sa = SYMBOL(
         ".....\n"
         ".....\n"
-        ".....\n"
         ".**.*\n"
+        "*..**\n"
         "*..**\n"
         "*..**\n"
         ".**.*"
