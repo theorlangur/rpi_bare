@@ -405,8 +405,8 @@ namespace rpi
             class Device
             {
             public:
-                using ReadU16Result = std::expected<uint16_t, Error>;
-                using ReadU8Result = std::expected<uint8_t, Error>;
+                template<std::integral T>
+                using ReadTResult = std::expected<T, Error>;
 
                 Device(uint8_t a = kInvalidAddress):m_Address(a){}
 
@@ -428,27 +428,18 @@ namespace rpi
                     }
 
 
-                    TransferResult write_u16(uint16_t v) const 
+                    template<std::integral T>
+                    TransferResult write(T v) const 
                     {
                         v = rpi::tools::swap_bytes(v);
                         return write((const uint8_t*)&v, sizeof(v));
                     }
 
-                    ReadU16Result read_u16() const 
+                    template<std::integral T>
+                    ReadTResult<T> read() const 
                     {
-                        uint16_t v;
-                        return read((uint8_t*)&v, sizeof(v)).and_then([&](uint16_t){ return ReadU16Result(rpi::tools::swap_bytes(v)); });
-                    }
-
-                    TransferResult write_u8(uint8_t v) const 
-                    {
-                        return write(&v, sizeof(v));
-                    }
-
-                    ReadU8Result read_u8() const 
-                    {
-                        uint8_t v;
-                        return read(&v, sizeof(v)).and_then([&](uint16_t){ return ReadU8Result(v); });
+                        T v;
+                        return read((uint8_t*)&v, sizeof(v)).and_then([&](auto){ return ReadTResult<T>(rpi::tools::swap_bytes(v)); });
                     }
                 };
 
