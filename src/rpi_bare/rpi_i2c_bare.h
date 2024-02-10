@@ -71,7 +71,10 @@ namespace rpi
         template<class RegAddrType>
         struct BaseReg
         {
-            BaseReg() = default;
+            BaseReg(RegAddrType v = RegAddrType(0))
+            {
+                *(RegAddrType*)this = v;
+            }
             BaseReg(volatile const RegAddrType *addr)
             {
                 *(RegAddrType*)this = *addr;
@@ -108,17 +111,17 @@ namespace rpi
 
             using BaseReg::BaseReg;
 
-            uint32_t read           :1 = 0;
-            uint32_t reserved       :3 = 0;
-            uint32_t clear          :2 = 0;
-            uint32_t reserved2      :1 = 0;
-            uint32_t start_transfer :1 = 0;
-            uint32_t int_done       :1 = 0;
-            uint32_t int_tx         :1 = 0;
-            uint32_t int_rx         :1 = 0;
-            uint32_t reserved3      :4 = 0;
-            uint32_t i2c_enabled    :1 = 0;
-            uint32_t reserved4      :16= 0;
+            uint32_t read           :1 ;
+            uint32_t reserved       :3 ;
+            uint32_t clear          :2 ;
+            uint32_t reserved2      :1 ;
+            uint32_t start_transfer :1 ;
+            uint32_t int_done       :1 ;
+            uint32_t int_tx         :1 ;
+            uint32_t int_rx         :1 ;
+            uint32_t reserved3      :4 ;
+            uint32_t i2c_enabled    :1 ;
+            uint32_t reserved4      :16;
         };
 
         struct StatusReg: BaseReg<s_addr_type>
@@ -138,17 +141,17 @@ namespace rpi
                 clkt_stretch_timeout = 9,
             };
 
-            uint32_t transfer_active      :1 = 0;
-            uint32_t transfer_done        :1 = 0;
-            uint32_t tx_need_write        :1 = 0;
-            uint32_t rx_need_read         :1 = 0;
-            uint32_t tx_can_accept_data   :1 = 0;
-            uint32_t rx_has_data          :1 = 0;
-            uint32_t tx_fifo_empty        :1 = 0;
-            uint32_t rx_fifo_full         :1 = 0;
-            uint32_t err_ack              :1 = 0;
-            uint32_t clkt_stretch_timeout :1 = 0;
-            uint32_t reserved             :22= 0;
+            uint32_t transfer_active      :1 ;
+            uint32_t transfer_done        :1 ;
+            uint32_t tx_need_write        :1 ;
+            uint32_t rx_need_read         :1 ;
+            uint32_t tx_can_accept_data   :1 ;
+            uint32_t rx_has_data          :1 ;
+            uint32_t tx_fifo_empty        :1 ;
+            uint32_t rx_fifo_full         :1 ;
+            uint32_t err_ack              :1 ;
+            uint32_t clkt_stretch_timeout :1 ;
+            uint32_t reserved             :22;
         };
 
         struct DlenReg: BaseReg<s_addr_type>
@@ -189,6 +192,7 @@ namespace rpi
         struct ClockStretchTimeoutReg: BaseReg<clkt_addr_type>
         {
             using BaseReg::BaseReg;
+            ClockStretchTimeoutReg():BaseReg<clkt_addr_type>(clkt_addr_type(0x40)){}
             uint32_t tout: 16 = 0x40;
             uint32_t reserved: 16;
         };
@@ -200,7 +204,7 @@ namespace rpi
             using PinT = rpi::gpio::Pin<p, RPi>;
             using funcs = i2c_func<RPi, pins::off>;
 
-            enum Error: uint8_t
+            enum class Error: uint8_t
             {
                 Err = 1,
                 Timeout = 2
@@ -300,9 +304,9 @@ namespace rpi
                         sr = status();
 
                     if (sr.err_ack)
-                        return Error::Err;
+                        return std::unexpected(Error::Err);
                     if (sr.clkt_stretch_timeout)
-                        return Error::Timeout;
+                        return std::unexpected(Error::Timeout);
 
                     write_fifo(*pSend++);
                     --len;
@@ -312,9 +316,9 @@ namespace rpi
                     sr = status();
 
                 if (sr.err_ack)
-                    return Error::Err;
+                    return std::unexpected(Error::Err);
                 if (sr.clkt_stretch_timeout)
-                    return Error::Timeout;
+                    return std::unexpected(Error::Timeout);
 
                 clear_status();
                 return _len - len;
@@ -352,9 +356,9 @@ namespace rpi
                 }
 
                 if (sr.err_ack)
-                    return Error::Err;
+                    return std::unexpected(Error::Err);
                 if (sr.clkt_stretch_timeout)
-                    return Error::Timeout;
+                    return std::unexpected(Error::Timeout);
 
                 clear_status();
                 return _len - len;
