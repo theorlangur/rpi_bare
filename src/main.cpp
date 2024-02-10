@@ -72,14 +72,12 @@ extern "C" void kernel_main()
     r.clear();
     {
         I2C::Init i2cInit;
-        uint8_t adcAddr = 0x48;
-        I2C::set_slave_addr(adcAddr);
+        I2C::Device ads1115(0x48);
         uint8_t reg = 0x01;//config
-        if (auto res = I2C::write(&reg, 1))
+        if (auto res = ads1115.write_u8(reg))
         {
-            uint16_t val = 0;
-            if ((res = I2C::read((uint8_t*)&val, 2)))
-                tools::format_to(to_display, "ADC config:\n{:x}", val);
+            if (auto res = ads1115.read_u16())
+                tools::format_to(to_display, "ADC config:\n{:x}", *res);
             else
                 tools::format_to(to_display, "Failed to read:\n{}", res);
         }else
