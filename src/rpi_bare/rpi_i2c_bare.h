@@ -66,7 +66,8 @@ namespace rpi
             static inline BARECONSTEXPR auto clkt_addr() { return (volatile clkt_addr_type* )(i2c_base_addr<RPi, i2c_base>() + RPi::off_i2c_clkt / 4); }
         };
 
-        static constexpr uint32_t max_fifo_size = 16;
+        static constexpr uint16_t max_fifo_size = 16;
+        static constexpr uint8_t kInvalidAddress = 0xff;
 
         template<class RegAddrType>
         struct BaseReg
@@ -209,7 +210,7 @@ namespace rpi
                 Err = 1,
                 Timeout = 2
             };
-            using TransferResult = std::expected<uint32_t, Error>;
+            using TransferResult = std::expected<uint16_t, Error>;
 
             struct Init
             {
@@ -278,7 +279,7 @@ namespace rpi
                 return funcs::s_addr();
             }
 
-            static TransferResult write(const uint8_t *pSend, uint32_t len)
+            static TransferResult write(const uint8_t *pSend, uint16_t len)
             {
                 clear_fifo();
                 clear_status();
@@ -324,7 +325,7 @@ namespace rpi
                 return _len - len;
             }
 
-            static TransferResult read(uint8_t *pRecv, uint32_t len)
+            static TransferResult read(uint8_t *pRecv, uint16_t len)
             {
                 clear_fifo();
                 clear_status();
@@ -400,6 +401,28 @@ namespace rpi
                 auto fifo_reg = funcs::fifo_addr();
                 return rpi::tools::get_bits<0, 8>((uint32_t)*fifo_reg) & 0x0ff;
             }
+        public:
+            class Device
+            {
+            public:
+                Device(uint8_t a = kInvalidAddress):m_Address(a){}
+
+                void set_addr(uint8_t a) { m_Address = a; }
+
+                TransferResult read(uint8_t *pRecv, uint16_t len) const 
+                { 
+                    I2C<RPi, pins>::set_slave_addr(m_Address);
+                    return I2C<RPi, pins>::read(pRecv, len); 
+                }
+
+                TransferResult write(const uint8_t *pSend, uint16_t len) const 
+                { 
+                    I2C<RPi, pins>::set_slave_addr(m_Address);
+                    return I2C<RPi, pins>::write(pSend, len); 
+                }
+            private:
+                uint8_t m_Address;
+            };
         };
     }
 }
