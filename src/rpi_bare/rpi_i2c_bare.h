@@ -412,41 +412,47 @@ namespace rpi
 
                 void set_addr(uint8_t a) { m_Address = a; }
 
-                TransferResult read(uint8_t *pRecv, uint16_t len) const 
-                { 
-                    I2C<RPi, pins>::set_slave_addr(m_Address);
-                    return I2C<RPi, pins>::read(pRecv, len); 
-                }
-
-                TransferResult write(const uint8_t *pSend, uint16_t len) const 
-                { 
-                    I2C<RPi, pins>::set_slave_addr(m_Address);
-                    return I2C<RPi, pins>::write(pSend, len); 
-                }
-
-
-                TransferResult write_u16(uint16_t v) const 
+                struct Channel
                 {
-                    v = rpi::tools::swap_bytes(v);
-                    return write((const uint8_t*)&v, sizeof(v));
-                }
+                    Channel(uint8_t a) { I2C<RPi, pins>::set_slave_addr(a); }
+                    ~Channel() { I2C<RPi, pins>::set_slave_addr(0xff); }
 
-                ReadU16Result read_u16() const 
-                {
-                    uint16_t v;
-                    return read((uint8_t*)&v, sizeof(v)).and_then([&](uint16_t){ return ReadU16Result(rpi::tools::swap_bytes(v)); });
-                }
+                    TransferResult read(uint8_t *pRecv, uint16_t len) const 
+                    { 
+                        return I2C<RPi, pins>::read(pRecv, len); 
+                    }
 
-                TransferResult write_u8(uint8_t v) const 
-                {
-                    return write(&v, sizeof(v));
-                }
+                    TransferResult write(const uint8_t *pSend, uint16_t len) const 
+                    { 
+                        return I2C<RPi, pins>::write(pSend, len); 
+                    }
 
-                ReadU8Result read_u8() const 
-                {
-                    uint8_t v;
-                    return read(&v, sizeof(v)).and_then([&](uint16_t){ return ReadU8Result(v); });
-                }
+
+                    TransferResult write_u16(uint16_t v) const 
+                    {
+                        v = rpi::tools::swap_bytes(v);
+                        return write((const uint8_t*)&v, sizeof(v));
+                    }
+
+                    ReadU16Result read_u16() const 
+                    {
+                        uint16_t v;
+                        return read((uint8_t*)&v, sizeof(v)).and_then([&](uint16_t){ return ReadU16Result(rpi::tools::swap_bytes(v)); });
+                    }
+
+                    TransferResult write_u8(uint8_t v) const 
+                    {
+                        return write(&v, sizeof(v));
+                    }
+
+                    ReadU8Result read_u8() const 
+                    {
+                        uint8_t v;
+                        return read(&v, sizeof(v)).and_then([&](uint16_t){ return ReadU8Result(v); });
+                    }
+                };
+
+                Channel communicate() const { return {m_Address}; }
             private:
                 uint8_t m_Address;
             };

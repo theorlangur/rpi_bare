@@ -74,9 +74,10 @@ extern "C" void kernel_main()
         I2C::Init i2cInit;
         I2C::Device ads1115(0x48);
         uint8_t reg = 0x01;//config
-        if (auto res = ads1115.write_u8(reg))
+        auto c = ads1115.communicate();
+        if (auto res = c.write_u8(reg))
         {
-            if (auto res = ads1115.read_u16())
+            if (auto res = c.read_u16())
                 tools::format_to(to_display, "ADC config:\n{:x}", *res);
             else
                 tools::format_to(to_display, "Failed to read:\n{}", res);
