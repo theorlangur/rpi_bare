@@ -201,6 +201,7 @@ namespace rpi
         template<class RPi, class pins = typename RPi::I2C1_Pins>
         struct I2C
         {
+            using RPiType = RPi;
             template<auto p>
             using PinT = rpi::gpio::Pin<p, RPi>;
             using funcs = i2c_func<RPi, pins::off>;
