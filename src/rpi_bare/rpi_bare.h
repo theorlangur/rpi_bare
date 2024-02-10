@@ -79,6 +79,11 @@ namespace rpi
         template<class T>
         const T& max(const T& t1, const T& t2) { return t1 > t2 ? t1 : t2;}
 
+        inline constexpr uint16_t swap_bytes(uint16_t v)
+        {
+            return ((v >> 8) & 0xff) | ((v << 8) & 0xff00);
+        }
+
         inline void delay_at_least_cycles(int cycles)
         {
             auto before = __builtin_readcyclecounter();
