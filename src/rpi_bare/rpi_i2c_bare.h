@@ -415,6 +415,12 @@ namespace rpi
 
                 void set_addr(uint8_t a) { m_Address = a; }
 
+                bool exists() const
+                {
+                    Channel c{m_Address};
+                    return c.write(nullptr, 0).has_value();
+                }
+
                 struct Channel
                 {
                     Channel(uint8_t a) { I2C<RPi, pins>::set_slave_addr(a); }
