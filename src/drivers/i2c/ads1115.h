@@ -147,7 +147,7 @@ public:
     }
     void set_addr(Address addr) { m_Device.set_addr((uint8_t)addr); }
 
-    FloatResult read_single()
+    IntResult<int16_t> read_single_raw()
     {
         auto c = m_Device.communicate();
         Config cfg = m_Config;
@@ -160,7 +160,12 @@ public:
         if (auto r = change_register(c, Reg::Conversion); !r)
             return std::unexpected(r.error());
 
-        return c.template read<int16_t>().and_then([&](int16_t iv){
+        return c.template read<int16_t>();
+    }
+
+    FloatResult read_single()
+    {
+        return read_single_raw().and_then([&](int16_t iv){
             float res;
             if (iv < 0)
                 res = -((m_MinRange * iv) / int16_t(0x8000));
