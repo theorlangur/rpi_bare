@@ -16,10 +16,18 @@ class ADS1115
         HiThreshold = 0x11
     };
 public:
+    enum class Error: uint8_t
+    {
+        I2Ce = 1,
+        Config = 2,
+        Conversion = 3,
+        WriteReg = 4,
+        ChangeReg = 5,
+    };
     template<std::integral T>
-    using IntResult = std::expected<T, typename I2C::Error>;
-    using GenericResult = std::expected<bool, typename I2C::Error>;
-    using FloatResult = std::expected<float, typename I2C::Error>;
+    using IntResult = std::expected<T, Error/*typename I2C::Error*/>;
+    using GenericResult = std::expected<bool, Error/*typename I2C::Error*/>;
+    using FloatResult = std::expected<float, Error/*typename I2C::Error*/>;
 
     struct Config
     {
@@ -88,7 +96,7 @@ public:
         uint32_t get_wait_time_us() const
         {
             uint32_t sps;
-            switch(data_rate)
+            switch(m_bits.data_rate)
             {
                 case Config::Rate::Sps8:   sps = 8; break;
                 case Config::Rate::Sps16:  sps = 16; break;
@@ -104,7 +112,7 @@ public:
 
         void get_full_scale_range(float &from, float &to) const
         {
-            switch(pga)
+            switch(m_bits.pga)
             {
                 case PGA::FSR_6_144: from = -6.144f; to = 6.144f; break;
                 case PGA::FSR_4_096: from = -4.096f; to = 4.096f; break;
@@ -117,7 +125,6 @@ public:
 
         union
         {
-            uint16_t m_dw;
             struct
             {
                 Comparator     comp_queue          : 2 = Comparator::Disable;
@@ -129,7 +136,8 @@ public:
                 PGA            pga                 : 3 = PGA::FSR_2_048;
                 Mux            mux                 : 3 = Mux::AIN_0_1;
                 uint16_t       conversion          : 1 = 1;
-            };
+            }m_bits{};
+            uint16_t m_dw;
         };
     };
 
@@ -146,13 +154,16 @@ public:
         m_Config.get_full_scale_range(m_MinRange, m_MaxRange);
     }
     void set_addr(Address addr) { m_Device.set_addr((uint8_t)addr); }
+    Address get_addr() const { return (Address)m_Device.get_addr(); }
+
+    bool exists() const { return m_Device.exists(); }
 
     IntResult<int16_t> read_single_raw()
     {
         auto c = m_Device.communicate();
         Config cfg = m_Config;
-        cfg.conversion = 1;
-        cfg.mode = Config::Mode::SingleShot;
+        cfg.m_bits.conversion = 1;
+        cfg.m_bits.mode = Config::Mode::SingleShot;
         if (auto r = write_to_register(c, Reg::Config, cfg); !r)
             return std::unexpected(r.error());
 
@@ -160,7 +171,14 @@ public:
         if (auto r = change_register(c, Reg::Conversion); !r)
             return std::unexpected(r.error());
 
-        return c.template read<int16_t>();
+        auto read_res = c.template read<int16_t>();
+        if (!read_res)
+            return std::unexpected(Error::Conversion);
+        return *read_res;
+        /*return c.template read<int16_t>()
+                .transform_error([](auto){ return IntResult<int16_t>(std::unexpect_t{}, Error::Conversion); })
+                .and_then([](auto v){ return IntResult<int16_t>(v);}); 
+                */
     }
 
     FloatResult read_single()
@@ -176,14 +194,30 @@ public:
     }
 private:
 
-    GenericResult change_register(I2C::Device::Channel &c, Reg r) { return c.write((uint8_t)r).and_then([](auto){ return GenericResult(true);}); }
+    GenericResult change_register(I2C::Device::Channel &c, Reg r) 
+    { 
+        if (auto res = c.write((uint8_t)r))
+            return true;
+        return std::unexpected(Error::ChangeReg);
+        /*return c.write((uint8_t)r)
+            .transform_error([](auto e){ return GenericResult(std::unexpect_t{}, Error::ChangeReg); })
+            .and_then([](auto){ return GenericResult(true);}); 
+            */
+    }
     GenericResult write_to_register(I2C::Device::Channel &c, Reg r, uint16_t v) 
     { 
         uint8_t buf[3];
         buf[0] = (uint8_t)r;
         buf[1] = uint8_t(v >> 8);
         buf[2] = uint8_t(v & 0xff);
-        return c.write(buf, sizeof(buf)).and_then([](auto){ return GenericResult(true);}); 
+        if (auto res = c.write_distinct_bytes(buf, sizeof(buf)))
+            return true;
+
+        return std::unexpected(Error::WriteReg);
+        /*return c.write(buf, sizeof(buf))
+            .transform_error([](auto e){ return GenericResult(std::unexpect_t{}, Error::WriteReg); })
+            .and_then([](auto){ return GenericResult(true);}); 
+            */
     }
     GenericResult write_to_register(I2C::Device::Channel &c, Reg r, Config cfg) { return write_to_register(c, r, cfg.m_dw); }
 
