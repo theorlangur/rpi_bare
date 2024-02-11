@@ -217,6 +217,30 @@ namespace tools
         }
     };
 
+    template<size_t N>
+    struct formatter_t<uint8_t[N]>
+    {
+        template<FormatDestination Dest>
+        static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, uint8_t(&v)[N])
+        {
+            for(uint8_t b : v)
+            {
+                uint8_t hi = (b >> 4) & 0xf;
+                uint8_t lo = b & 0xf;
+                if (hi < 10)
+                    dst('0' + hi);
+                else
+                    dst('a' + hi);
+                if (lo < 10)
+                    dst('0' + lo);
+                else
+                    dst('a' + lo);
+                dst(' ');
+            }
+            return N * 3;
+        }
+    };
+
     template<std::integral T>
     struct formatter_t<T>
     {
