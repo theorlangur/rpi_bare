@@ -210,7 +210,7 @@ private:
         buf[0] = (uint8_t)r;
         buf[1] = uint8_t(v >> 8);
         buf[2] = uint8_t(v & 0xff);
-        if (auto res = c.write_distinct_bytes(buf, sizeof(buf)))
+        if (auto res = c.write(buf, sizeof(buf)))
             return true;
 
         return std::unexpected(Error::WriteReg);
