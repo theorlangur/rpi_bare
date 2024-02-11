@@ -10,6 +10,7 @@
 
 #include "display/icons/display_icons_misc.h"
 #include "display/display_formatter.h"
+#include "drivers/i2c/ads1115.h"
 
 #if defined(PI_BARE_FAKE)
 #include <stdio.h>
@@ -91,28 +92,73 @@ extern "C" void kernel_main()
     using Renderer = display::font::FontRenderer<decltype(d)>;
     Renderer r(d);
 
-#if defined(PI_BARE_FAKE)
-    auto to_display = ConsoleOutput{};
-#else
     auto to_display = display::DisplayFormatter{r, {0,0}};
-#endif
-    tools::format_to(to_display, "Test float:\n{}\n{}\n{}\n", -0.5, 1234123.f, -1.55e-12);
-
     r.clear();
     {
         I2C::Init i2cInit;
+        ADS1115<I2C> ads1115;
+        if (ads1115.exists())
+        {
+            for(int i = 0; i < 20; ++i)
+            {
+                r.clear();
+                to_display.p = {0,0};
+                tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single_raw());
+                r.show();
+                Timer::delay_ms(2000);
+            }
+        }else
+        {
+            tools::format_to(to_display, "Didn't find ADS\nat {}", (uint8_t)ads1115.get_addr());
+        }
+/*
         I2C::Device ads1115(0x48);
         uint8_t reg = 0x01;//config
         auto c = ads1115.communicate();
-        if (auto res = c.write<uint8_t>(reg))
+        tools::format_to(to_display, "Preparing...\n");
+        r.show();
+        Timer::delay_ms(2000);
+        ADS1115<I2C>::Config cfg;
+        cfg.m_bits.conversion = 1;
+        cfg.m_bits.mode = ADS1115<I2C>::Config::Mode::SingleShot;
+        uint8_t buf[3];
+        buf[0] = reg;
+        buf[1] = uint8_t(cfg.m_dw >> 8);
+        buf[2] = uint8_t(cfg.m_dw & 0xff);
+        bool cfgres = true;
+        for(int i = 0; i < 3; ++i)
         {
-            if (auto res = c.read<uint16_t>())
-                tools::format_to(to_display, "ADC config:\n{:x}", *res);
+            if (auto res = c.write(&buf[i], 1); !res)
+            {
+                tools::format_to(to_display, "Failed config\nbyte {}; Err:{}", i, res);
+                cfgres = false;
+                break;
+            }
+        }
+        if (cfgres)
+        {
+            tools::format_to(to_display, "config done\n");
+            r.show();
+            Timer::delay_ms(2000);
+            reg = 0x0;
+            if (auto res = c.write(&reg, 1))
+            {
+                tools::format_to(to_display, "changed reg to 0\n");
+                r.show();
+                Timer::delay_ms(2000);
+                if (auto res = c.read<int16_t>())
+                    tools::format_to(to_display, "ADC conv:\n{:x}", *res);
+                else
+                    tools::format_to(to_display, "Failed to read:\n{}", res);
+            }
             else
-                tools::format_to(to_display, "Failed to read:\n{}", res);
-        }else
-            tools::format_to(to_display, "Failed to write\nreg addr:\n{}", res);
+                tools::format_to(to_display, "Failed to\nchange reg");
+        }
+        //else
+        //    tools::format_to(to_display, "Failed to write\nconfig:{}", res);
+*/
     }
+    tools::format_to(to_display, "\nFinished");
     r.show();
     Timer::delay_ms(20000);
     /*{
