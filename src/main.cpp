@@ -11,6 +11,30 @@
 #include "display/icons/display_icons_misc.h"
 #include "display/display_formatter.h"
 
+#if defined(PI_BARE_FAKE)
+#include <stdio.h>
+#include <string>
+
+struct ConsoleOutput
+{
+    display::tools::Point p;
+    void operator()(char c)
+    {
+        char b[2];
+        b[0] = c;
+        b[1] = 0;
+        printf("%s", b);
+    }
+
+    void operator()(std::string_view const& sv)
+    {
+        std::string s(sv);
+        printf("%s", s.c_str());
+        //puts(s.c_str());
+    }
+};
+#endif
+
 extern "C" void kernel_main()
 {
     using RPi = rpi::RPiBplus;
@@ -67,7 +91,12 @@ extern "C" void kernel_main()
     using Renderer = display::font::FontRenderer<decltype(d)>;
     Renderer r(d);
 
+#if defined(PI_BARE_FAKE)
+    auto to_display = ConsoleOutput{};
+#else
     auto to_display = display::DisplayFormatter{r, {0,0}};
+#endif
+    tools::format_to(to_display, "Test float:\n{}\n{}\n{}\n", -0.5, 1234123.f, -1.55e-12);
 
     r.clear();
     {
