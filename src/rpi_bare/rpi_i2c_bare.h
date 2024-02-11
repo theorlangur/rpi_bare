@@ -327,6 +327,34 @@ namespace rpi
                 return _len - len;
             }
 
+            static TransferResult write_byte(uint8_t b)
+            {
+                clear_fifo();
+                clear_status();
+                auto dlen_reg = funcs::dlen_addr();
+                rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, 1);
+                write_fifo(b);
+
+                ControlReg cr;
+                cr.read = 0;
+                cr.i2c_enabled = 1;
+                cr.start_transfer = 1;
+                auto c_reg = funcs::c_addr();
+                cr.write_to(c_reg);
+
+                StatusReg sr = status();
+                while(!sr.transfer_done && !sr.err_ack && !sr.clkt_stretch_timeout)
+                    sr = status();
+
+                if (sr.err_ack)
+                    return std::unexpected(Error::Err);
+                if (sr.clkt_stretch_timeout)
+                    return std::unexpected(Error::Timeout);
+
+                clear_status();
+                return 1;
+            }
+
             template<rpi::tools::DestinationIterator Dst>
             static TransferResult read(Dst &&pRecv, uint16_t len)
             {
@@ -414,6 +442,7 @@ namespace rpi
                 Device(uint8_t a = kInvalidAddress):m_Address(a){}
 
                 void set_addr(uint8_t a) { m_Address = a; }
+                uint8_t get_addr() const { return m_Address; }
 
                 bool exists() const
                 {
@@ -425,6 +454,11 @@ namespace rpi
                 {
                     Channel(uint8_t a) { I2C<RPi, pins>::set_slave_addr(a); }
                     ~Channel() { I2C<RPi, pins>::set_slave_addr(0xff); }
+
+                    TransferResult read(uint8_t *pRecv, uint16_t len) const 
+                    { 
+                        return I2C<RPi, pins>::read(pRecv, len); 
+                    }
 
                     template<rpi::tools::DestinationIterator Dst>
                     TransferResult read(Dst &&pRecv, uint16_t len) const 
@@ -438,6 +472,31 @@ namespace rpi
                         return I2C<RPi, pins>::write(std::forward<Src>(pSend), len); 
                     }
 
+                    template<rpi::tools::SourceIterator Src>
+                    TransferResult write_distinct_bytes(Src &&pSend, uint16_t len) const 
+                    { 
+                        for(uint16_t i = 0; i < len; ++i, ++pSend)
+                        {
+                            if (auto r = I2C<RPi, pins>::write_byte(*pSend); !r) 
+                                return r;
+                        }
+                        return len;
+                    }
+
+                    TransferResult write(const uint8_t *pSend, uint16_t len) const 
+                    { 
+                        return I2C<RPi, pins>::write(pSend, len); 
+                    }
+
+                    TransferResult write_distinct_bytes(const uint8_t *pSend, uint16_t len) const 
+                    { 
+                        for(uint16_t i = 0; i < len; ++i)
+                        {
+                            if (auto r = I2C<RPi, pins>::write_byte(pSend[i]); !r) 
+                                return r;
+                        }
+                        return len;
+                    }
 
                     template<std::integral T>
                     TransferResult write(T v) const 
@@ -449,7 +508,14 @@ namespace rpi
                     ReadTResult<T> read() const 
                     {
                         T v;
+#if defined(PI_BARE_FAKE)
+                        auto r = read(rpi::tools::ReverseDestinationT{v}, sizeof(v));
+                        if (r)
+                            return ReadTResult<T>(v);
+                        return std::unexpected(r.error());
+#else
                         return read(rpi::tools::ReverseDestinationT{v}, sizeof(v)).and_then([&](auto){ return ReadTResult<T>(v); });
+#endif
                     }
                 };
 
