@@ -25,6 +25,198 @@ namespace tools
     template<class T>
     struct formatter_t;
 
+    template<std::floating_point F>
+    struct FloatingPointFormatTraits;
+
+    template<>
+    struct FloatingPointFormatTraits<float>
+    {
+        constexpr static float posExpThreshold=1e7;
+        constexpr static float negExpThreshold=1e-5;
+    };
+
+    template<>
+    struct FloatingPointFormatTraits<double>
+    {
+        constexpr static double posExpThreshold=1e7;
+        constexpr static double negExpThreshold=1e-5;
+    };
+
+
+    template<std::floating_point T>
+    struct formatter_t<T>
+    {
+        static int16_t normalizeFloat(T &value)
+        {
+            using FP = FloatingPointFormatTraits<T>;
+            int16_t exponent = 0;
+
+            if (value >= FP::posExpThreshold) {
+                if (value >= 1e256) {
+                    value /= 1e256;
+                    exponent += 256;
+                }
+                if (value >= 1e128) {
+                    value /= 1e128;
+                    exponent += 128;
+                }
+                if (value >= 1e64) {
+                    value /= 1e64;
+                    exponent += 64;
+                }
+                if (value >= 1e32) {
+                    value /= 1e32;
+                    exponent += 32;
+                }
+                if (value >= 1e16) {
+                    value /= 1e16;
+                    exponent += 16;
+                }
+                if (value >= 1e8) {
+                    value /= 1e8;
+                    exponent += 8;
+                }
+                if (value >= 1e4) {
+                    value /= 1e4;
+                    exponent += 4;
+                }
+                if (value >= 1e2) {
+                    value /= 1e2;
+                    exponent += 2;
+                }
+                if (value >= 1e1) {
+                    value /= 1e1;
+                    exponent += 1;
+                }
+            }else if (value > 0 && value <= FP::negExpThreshold) {
+                if (value < 1e-255) {
+                    value *= 1e256;
+                    exponent -= 256;
+                }
+                if (value < 1e-127) {
+                    value *= 1e128;
+                    exponent -= 128;
+                }
+                if (value < 1e-63) {
+                    value *= 1e64;
+                    exponent -= 64;
+                }
+                if (value < 1e-31) {
+                    value *= 1e32;
+                    exponent -= 32;
+                }
+                if (value < 1e-15) {
+                    value *= 1e16;
+                    exponent -= 16;
+                }
+                if (value < 1e-7) {
+                    value *= 1e8;
+                    exponent -= 8;
+                }
+                if (value < 1e-3) {
+                    value *= 1e4;
+                    exponent -= 4;
+                }
+                if (value < 1e-1) {
+                    value *= 1e2;
+                    exponent -= 2;
+                }
+                if (value < 1e0) {
+                    value *= 1e1;
+                    exponent -= 1;
+                }
+            }
+
+            return exponent;
+        }
+
+        static void splitFloat(T value, uint32_t &integralPart,
+                uint32_t &decimalPart, int16_t &exponent) {
+            exponent = normalizeFloat(value);
+
+            integralPart = (uint32_t)value;
+            double remainder = value - integralPart;
+
+            remainder *= 1e9;
+            decimalPart = (uint32_t)remainder;  
+
+            // rounding
+            remainder -= decimalPart;
+            if (remainder >= 0.5) {
+                decimalPart++;
+                if (decimalPart >= 1000000000) {
+                    decimalPart = 0;
+                    integralPart++;
+                    if (exponent != 0 && integralPart >= 10) {
+                        exponent++;
+                        integralPart = 1;
+                    }
+                }
+            }
+        }
+
+        template<FormatDestination Dest>
+        static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, T v)
+        {
+            bool neg = v < 0;
+            if (neg)
+                v = -v;
+
+            uint32_t intPart, decPart;
+            int16_t exp;
+            splitFloat(v, intPart, decPart, exp);
+            constexpr size_t n = 16;
+            char intStr[n];
+            intStr[15] = '0';
+            uint8_t d = intPart == 0 ? 1 : 0;
+
+            while(intPart)
+            {
+                intStr[n - ++d] = '0' + (intPart % 10);
+                intPart /= 10;
+            }
+            if (neg)
+                intStr[n - ++d] = '-';
+            //printing integral part
+            dst(std::string_view(intStr + n - d, d));
+            //printing decimal part
+            uint8_t r = d;
+            d = 0;
+            while(decPart)
+            {
+                auto digit = decPart % 10;
+                if (digit || d)
+                    intStr[n - ++d] = '0' + digit;
+                decPart /= 10;
+            }
+            if (d)
+                intStr[n - ++d] = '.';
+            dst(std::string_view(intStr + n - d, d));
+            r += d;
+
+            //printing exponent
+            if (exp)
+            {
+                neg = exp < 0;
+                if (neg)
+                    exp = -exp;
+
+                d = 0;
+                while(exp)
+                {
+                    intStr[n - ++d] = '0' + (exp % 10);
+                    exp /= 10;
+                }
+                if (neg)
+                    intStr[n - ++d] = '-';
+                intStr[n - ++d] = 'e';
+                r += d;
+                dst(std::string_view(intStr + n - d, d));
+            }
+            return r;
+        }
+    };
+
     template<std::integral T>
     struct formatter_t<T>
     {
