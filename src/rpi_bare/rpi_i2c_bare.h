@@ -198,6 +198,18 @@ namespace rpi
             uint32_t reserved: 16;
         };
 
+        enum class ErrorCode: uint8_t
+        {
+            Err = 1,
+            Timeout = 2
+        };
+        struct Error
+        {
+            ErrorCode code;
+            uint16_t transferred;
+        };
+        using TransferResult = std::expected<uint16_t, Error>;
+
         template<class RPi, class pins = typename RPi::I2C1_Pins>
         struct I2C
         {
@@ -205,13 +217,6 @@ namespace rpi
             template<auto p>
             using PinT = rpi::gpio::Pin<p, RPi>;
             using funcs = i2c_func<RPi, pins::off>;
-
-            enum class Error: uint8_t
-            {
-                Err = 1,
-                Timeout = 2
-            };
-            using TransferResult = std::expected<uint16_t, Error>;
 
             struct Init
             {
@@ -288,7 +293,7 @@ namespace rpi
                 auto dlen_reg = funcs::dlen_addr();
                 auto preload_len = std::min(len, max_fifo_size);
                 rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, len);
-                uint32_t _len = len;
+                uint16_t _len = len;
                 len -= preload_len;
                 while(preload_len--)
                     write_fifo(*pSend++);
@@ -307,9 +312,9 @@ namespace rpi
                         sr = status();
 
                     if (sr.err_ack)
-                        return std::unexpected(Error::Err);
+                        return std::unexpected(Error{ErrorCode::Err, uint16_t(_len - len)});
                     if (sr.clkt_stretch_timeout)
-                        return std::unexpected(Error::Timeout);
+                        return std::unexpected(Error{ErrorCode::Timeout, uint16_t(_len - len)});
 
                     write_fifo(*pSend++);
                     --len;
@@ -319,9 +324,9 @@ namespace rpi
                     sr = status();
 
                 if (sr.err_ack)
-                    return std::unexpected(Error::Err);
+                    return std::unexpected(Error{ErrorCode::Err, _len});
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error::Timeout);
+                    return std::unexpected(Error{ErrorCode::Timeout, _len});
 
                 clear_status();
                 return _len - len;
@@ -347,9 +352,9 @@ namespace rpi
                     sr = status();
 
                 if (sr.err_ack)
-                    return std::unexpected(Error::Err);
+                    return std::unexpected(Error{ErrorCode::Err, 0});
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error::Timeout);
+                    return std::unexpected(Error{ErrorCode::Timeout, 0});
 
                 clear_status();
                 return 1;
@@ -394,9 +399,9 @@ namespace rpi
                 }
 
                 if (sr.err_ack)
-                    return std::unexpected(Error::Err);
+                    return std::unexpected(Error{ErrorCode::Err, uint16_t(_len - len)});
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error::Timeout);
+                    return std::unexpected(Error{ErrorCode::Timeout, uint16_t(_len - len)});
 
                 clear_status();
                 return _len - len;
@@ -526,5 +531,4 @@ namespace rpi
         };
     }
 }
-
 #endif
