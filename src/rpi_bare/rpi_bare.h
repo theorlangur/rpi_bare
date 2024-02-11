@@ -15,6 +15,62 @@ namespace rpi
 {
     namespace tools
     {
+        template<typename T>
+        concept SourceIterator = requires(T a)
+        {
+            { a++ };
+            { *a } -> std::convertible_to<uint8_t>;
+        };
+
+        template<typename T>
+        concept DestinationIterator = requires(T a)
+        {
+            { a++ };
+            { *a } -> std::same_as<uint8_t&>;
+        };
+
+        struct ReverseSource
+        {
+            ReverseSource(const uint8_t *pBuf, size_t len):pSrc(pBuf + len - 1){}
+            template<size_t N>
+            ReverseSource(const uint8_t (&buf)[N]):pSrc(buf + N - 1){}
+
+            const uint8_t *operator++(int) { return pSrc--; }
+            uint8_t operator*() const { return *pSrc; }
+
+        private:
+            const uint8_t *pSrc;
+        };
+
+        struct ReverseDestination
+        {
+            ReverseDestination(uint8_t *pBuf, size_t len):pDst(pBuf + len - 1){}
+            template<size_t N>
+            ReverseDestination(const uint8_t (&buf)[N]):pDst(buf + N - 1){}
+
+            uint8_t *operator++(int) { return pDst--; }
+            uint8_t& operator*() const { return *pDst; }
+
+        private:
+            uint8_t *pDst;
+        };
+
+        template<class T>
+        struct ReverseSourceT: ReverseSource
+        {
+            ReverseSourceT(T const &d):
+                ReverseSource(reinterpret_cast<const uint8_t*>(&d), sizeof(T))
+            {}
+        };
+
+        template<class T>
+        struct ReverseDestinationT: ReverseDestination
+        {
+            ReverseDestinationT(T &d):
+                ReverseDestination(reinterpret_cast<uint8_t*>(&d), sizeof(T))
+            {}
+        };
+
         template<class Lambda>
         struct ExitScopeObj
         {

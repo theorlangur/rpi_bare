@@ -280,7 +280,8 @@ namespace rpi
                 return funcs::s_addr();
             }
 
-            static TransferResult write(const uint8_t *pSend, uint16_t len)
+            template<rpi::tools::SourceIterator Src>
+            static TransferResult write(Src &&pSend, uint16_t len)
             {
                 clear_fifo();
                 clear_status();
@@ -326,7 +327,8 @@ namespace rpi
                 return _len - len;
             }
 
-            static TransferResult read(uint8_t *pRecv, uint16_t len)
+            template<rpi::tools::DestinationIterator Dst>
+            static TransferResult read(Dst &&pRecv, uint16_t len)
             {
                 clear_fifo();
                 clear_status();
@@ -418,29 +420,30 @@ namespace rpi
                     Channel(uint8_t a) { I2C<RPi, pins>::set_slave_addr(a); }
                     ~Channel() { I2C<RPi, pins>::set_slave_addr(0xff); }
 
-                    TransferResult read(uint8_t *pRecv, uint16_t len) const 
+                    template<rpi::tools::DestinationIterator Dst>
+                    TransferResult read(Dst &&pRecv, uint16_t len) const 
                     { 
-                        return I2C<RPi, pins>::read(pRecv, len); 
+                        return I2C<RPi, pins>::read(std::forward<Dst>(pRecv), len); 
                     }
 
-                    TransferResult write(const uint8_t *pSend, uint16_t len) const 
+                    template<rpi::tools::SourceIterator Src>
+                    TransferResult write(Src &&pSend, uint16_t len) const 
                     { 
-                        return I2C<RPi, pins>::write(pSend, len); 
+                        return I2C<RPi, pins>::write(std::forward<Src>(pSend), len); 
                     }
 
 
                     template<std::integral T>
                     TransferResult write(T v) const 
                     {
-                        v = rpi::tools::swap_bytes(v);
-                        return write((const uint8_t*)&v, sizeof(v));
+                        return write(rpi::tools::ReverseSourceT{v}, sizeof(v));
                     }
 
                     template<std::integral T>
                     ReadTResult<T> read() const 
                     {
                         T v;
-                        return read((uint8_t*)&v, sizeof(v)).and_then([&](auto){ return ReadTResult<T>(rpi::tools::swap_bytes(v)); });
+                        return read(rpi::tools::ReverseDestinationT{v}, sizeof(v)).and_then([&](auto){ return ReadTResult<T>(v); });
                     }
                 };
 
