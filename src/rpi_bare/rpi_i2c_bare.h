@@ -323,10 +323,7 @@ namespace rpi
                     if (sr.clkt_stretch_timeout)
                         return std::unexpected(Error{ErrorCode::Timeout, uint16_t(_len - len)});
 
-                    {
-                        tools::mem_barrier mb;
-                        write_fifo(*pSend++);
-                    }
+                    write_fifo(*pSend++);
                     --len;
                 }
 
