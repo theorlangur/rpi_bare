@@ -500,6 +500,18 @@ namespace rpi
                         return I2C<RPi, pins>::write(pSend, len); 
                     }
 
+                    TransferResult write_to_reg_u16(uint8_t r, uint16_t val) const 
+                    { 
+                        uint8_t buf[] = {r, uint8_t(val >> 8), uint8_t(val & 0xff)};
+                        return I2C<RPi, pins>::write((const uint8_t*)buf, sizeof(buf)); 
+                    }
+
+                    TransferResult write_to_reg_i16(uint8_t r, int16_t val) const 
+                    { 
+                        uint8_t buf[] = {r, uint8_t(val >> 8), uint8_t(val & 0xff)};
+                        return I2C<RPi, pins>::write((const uint8_t*)buf, sizeof(buf)); 
+                    }
+
                     TransferResult write_distinct_bytes(const uint8_t *pSend, uint16_t len) const 
                     { 
                         for(uint16_t i = 0; i < len; ++i)
@@ -514,6 +526,12 @@ namespace rpi
                     TransferResult write(T v) const 
                     {
                         return write(rpi::tools::ReverseSourceT{v}, sizeof(v));
+                    }
+
+                    template<std::integral T>
+                    ReadTResult<T> read_from_reg(uint8_t reg) const 
+                    {
+                        return write(reg).and_then([&](auto){ return read<T>(); });
                     }
 
                     template<std::integral T>
