@@ -212,6 +212,19 @@ namespace rpi
         };
         using TransferResult = std::expected<uint16_t, Error>;
 
+        enum class WriteStage: uint8_t
+        {
+            BeforeClean = 0,
+            FifoPreFill,
+            Started,
+            FifoEmptyWait,
+            CanAcceptDataWait,
+            AfterFifoInLoop,
+            TransferDoneWait,
+            Invalid = 0xff,
+        };
+        inline void dummy_callback(StatusReg sr, WriteStage s){}
+
         template<class RPi, class pins = typename RPi::I2C1_Pins>
         struct I2C
         {
@@ -290,9 +303,22 @@ namespace rpi
                 return funcs::s_addr();
             }
 
-            template<rpi::tools::SourceIterator Src>
-            static TransferResult write(Src &&pSend, uint16_t len)
+            template<rpi::tools::SourceIterator Src, class Callback = decltype(dummy_callback)>
+            static TransferResult write(Src &&pSend, uint16_t len, Callback callback = {})
             {
+                StatusReg lastStatus;
+                WriteStage lastStage = WriteStage::Invalid;
+                auto cb = [&](StatusReg sr, WriteStage s)
+                {
+                    if (callback && (sr.raw() != lastStatus.raw() || lastStage != s))
+                    {
+                        lastStatus = sr;
+                        lastStage = s;
+                        callback(sr, s);
+                    }
+                };
+                cb(status(), WriteStage::BeforeClean);
+
                 clear_fifo();
                 clear_status();
                 auto dlen_reg = funcs::dlen_addr();
@@ -302,7 +328,10 @@ namespace rpi
                 uint16_t _len = len;
                 len -= preload_len;
                 while(preload_len--)
+                {
                     write_fifo(*pSend++);
+                    cb(status(), WriteStage::FifoPreFill);
+                }
 
                 ControlReg cr;
                 cr.read = 0;
@@ -312,13 +341,20 @@ namespace rpi
                 cr.write_to(c_reg);
 
                 StatusReg sr = status();
+                cb(sr, WriteStage::Started);
                 while(len)
                 {
                     //TODO: removeme
                     while(!sr.tx_fifo_empty)
+                    {
                         sr = status();
+                        cb(sr, WriteStage::FifoEmptyWait);
+                    }
                     while(!sr.tx_can_accept_data)
+                    {
                         sr = status();
+                        cb(sr, WriteStage::CanAcceptDataWait);
+                    }
 
                     if (sr.err_ack)
                         return std::unexpected(Error{sr, uint16_t(_len - len)});
@@ -326,11 +362,15 @@ namespace rpi
                         return std::unexpected(Error{sr, uint16_t(_len - len)});
 
                     write_fifo(*pSend++);
+                    cb(status(), WriteStage::AfterFifoInLoop);
                     --len;
                 }
 
                 while(!sr.transfer_done && !sr.err_ack && !sr.clkt_stretch_timeout)
+                {
                     sr = status();
+                    cb(sr, WriteStage::TransferDoneWait);
+                }
 
                 if (sr.err_ack)
                     return std::unexpected(Error{sr, _len});
