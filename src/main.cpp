@@ -126,6 +126,7 @@ extern "C" void kernel_main()
                 r.clear();
                 to_display.p = {0,0};
                 tools::format_to(to_display, "ADS({}):{:x}", i, ads1115.read_single_raw());
+                //tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single());
                 r.show();
                 Timer::delay_ms(2000);
             }
