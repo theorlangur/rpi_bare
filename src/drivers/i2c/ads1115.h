@@ -23,6 +23,7 @@ public:
         Conversion = 3,
         WriteReg = 4,
         ChangeReg = 5,
+        ReadReg = 6,
     };
     template<std::integral T>
     using IntResult = std::expected<T, Error/*typename I2C::Error*/>;
@@ -158,7 +159,39 @@ public:
 
     bool exists() const { return m_Device.exists(); }
 
-    IntResult<int16_t> read_single_raw()
+    IntResult<uint16_t> get_conv_dbg() const
+    {
+        return read_register<uint16_t, Reg::Conversion>();
+    }
+
+    IntResult<int16_t> get_hi_threshold() const
+    {
+        return read_register<int16_t, Reg::HiThreshold>();
+    }
+
+    IntResult<int16_t> set_hi_threshold(int16_t v) const
+    {
+        auto c = m_Device.communicate();
+        return write_to_register(c, Reg::HiThreshold, v);
+    }
+
+    IntResult<int16_t> get_lo_threshold() const
+    {
+        return read_register<int16_t, Reg::LoThreshold>();
+    }
+
+    IntResult<int16_t> set_lo_threshold(int16_t v) const
+    {
+        auto c = m_Device.communicate();
+        return write_to_register(c, Reg::LoThreshold, v);
+    }
+
+    IntResult<uint16_t> get_config() const
+    {
+        return read_register<uint16_t, Reg::Config>();
+    }
+
+    IntResult<int16_t> read_single_raw() const
     {
         auto c = m_Device.communicate();
         Config cfg = m_Config;
@@ -181,7 +214,7 @@ public:
                 */
     }
 
-    FloatResult read_single()
+    FloatResult read_single() const
     {
         return read_single_raw().and_then([&](int16_t iv){
             float res;
@@ -193,8 +226,20 @@ public:
         });
     }
 private:
+    template<typename T, Reg reg>
+    IntResult<T> read_register() const
+    {
+        auto c = m_Device.communicate();
+        if (auto r = change_register(c, reg); !r)
+            return std::unexpected(r.error());
 
-    GenericResult change_register(I2C::Device::Channel &c, Reg r) 
+        auto read_res = c.template read<T>();
+        if (!read_res)
+            return std::unexpected(Error::ReadReg);
+        return *read_res;
+    }
+
+    GenericResult change_register(I2C::Device::Channel &c, Reg r) const
     { 
         if (auto res = c.write((uint8_t)r))
             return true;
@@ -204,7 +249,7 @@ private:
             .and_then([](auto){ return GenericResult(true);}); 
             */
     }
-    GenericResult write_to_register(I2C::Device::Channel &c, Reg r, uint16_t v) 
+    GenericResult write_to_register(I2C::Device::Channel &c, Reg r, uint16_t v) const
     { 
         uint8_t buf[3];
         buf[0] = (uint8_t)r;
@@ -219,7 +264,7 @@ private:
             .and_then([](auto){ return GenericResult(true);}); 
             */
     }
-    GenericResult write_to_register(I2C::Device::Channel &c, Reg r, Config cfg) { return write_to_register(c, r, cfg.m_dw); }
+    GenericResult write_to_register(I2C::Device::Channel &c, Reg r, Config cfg) const { return write_to_register(c, r, cfg.m_dw); }
 
     I2C::Device m_Device;
     Config m_Config;
