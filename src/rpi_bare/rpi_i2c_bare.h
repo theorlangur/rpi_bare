@@ -207,8 +207,8 @@ namespace rpi
         };
         struct Error
         {
-            StatusReg status;
             uint16_t transferred;
+            ErrorCode code;
         };
         using TransferResult = std::expected<uint16_t, Error>;
 
@@ -331,10 +331,10 @@ namespace rpi
                     while(!sr.tx_can_accept_data)
                         sr = status();
 
-                    if (sr.err_ack)
-                        return std::unexpected(Error{sr, uint16_t(_len - len)});
                     if (sr.clkt_stretch_timeout)
-                        return std::unexpected(Error{sr, uint16_t(_len - len)});
+                        return std::unexpected(Error{uint16_t(_len - len), ErrorCode::Timeout});
+                    if (sr.err_ack)
+                        return std::unexpected(Error{uint16_t(_len - len), ErrorCode::Err});
 
                     write_fifo(*pSend++);
                     sr = status();
@@ -344,10 +344,10 @@ namespace rpi
                 while(!sr.transfer_done)
                     sr = status();
 
-                if (sr.err_ack)
-                    return std::unexpected(Error{sr, _len});
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error{sr, _len});
+                    return std::unexpected(Error{_len, ErrorCode::Timeout});
+                if (sr.err_ack)
+                    return std::unexpected(Error{_len, ErrorCode::Err});
 
                 clear_status();
                 return _len;
@@ -372,10 +372,10 @@ namespace rpi
                 while(!sr.transfer_done && !sr.err_ack && !sr.clkt_stretch_timeout)
                     sr = status();
 
-                if (sr.err_ack)
-                    return std::unexpected(Error{sr, 1});
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error{sr, 1});
+                    return std::unexpected(Error{1, ErrorCode::Timeout});
+                if (sr.err_ack)
+                    return std::unexpected(Error{1, ErrorCode::Err});
 
                 clear_status();
                 return 1;
@@ -419,10 +419,10 @@ namespace rpi
                     sr = status();
                 }
 
-                if (sr.err_ack)
-                    return std::unexpected(Error{sr, uint16_t(_len - len)});
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error{sr, uint16_t(_len - len)});
+                    return std::unexpected(Error{uint16_t(_len - len), ErrorCode::Timeout});
+                if (sr.err_ack)
+                    return std::unexpected(Error{uint16_t(_len - len), ErrorCode::Err});
 
                 clear_status();
                 return _len - len;
