@@ -121,15 +121,16 @@ extern "C" void kernel_main()
                 r.show();
                 Timer::delay_ms(2000);
             }
-            float t = 1.f;
+            float t = 0.5f;
             for(int i = 0; i < 20; ++i)
             {
                 r.clear();
                 to_display.p = {0,0};
                 tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single_raw());
-                t *= to_display.p.x;
-                if (to_display.p.y)
-                    t /= to_display.p.y;
+                //t *= to_display.p.x;
+                //if (to_display.p.y == 0)
+                //    t /= to_display.p.y + 2;
+                //tools::format_to(to_display, "\nfloat:{}", t);
                 //tools::format_to(to_display, "ADS({}):{}", i, (int)*ads1115.read_single());
                 r.show();
                 Timer::delay_ms(2000);
