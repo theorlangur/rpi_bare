@@ -10,10 +10,10 @@ class ADS1115
     using Timer = rpi::timers::Sys<typename I2C::RPiType>;
     enum class Reg: uint8_t
     {
-        Conversion  = 0x00,
-        Config      = 0x01,
-        LoThreshold = 0x10,
-        HiThreshold = 0x11
+        Conversion  = 0b00,
+        Config      = 0b01,
+        LoThreshold = 0b10,
+        HiThreshold = 0b11
     };
 public:
     enum class Error: uint8_t
