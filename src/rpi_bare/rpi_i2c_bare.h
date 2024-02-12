@@ -282,7 +282,7 @@ namespace rpi
             {
                 clear_fifo();
                 DivReg d;
-                d.div = 0x5cd >> 2;//1500, 150MHz/1500 = 100KHz
+                d.div = 0x5cd;//1500, 150MHz/1500 = 100KHz
                 d.write_to(funcs::div_addr());
             }
 
@@ -323,7 +323,7 @@ namespace rpi
                 clear_status();
                 auto dlen_reg = funcs::dlen_addr();
                 //TODO: fixme
-                auto preload_len = std::min(len, uint16_t(1)/*max_fifo_size*/);
+                auto preload_len = std::min(len, /*uint16_t(1)*/max_fifo_size);
                 rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, len);
                 uint16_t _len = len;
                 len -= preload_len;
@@ -367,7 +367,7 @@ namespace rpi
                     --len;
                 }
 
-                while(!sr.transfer_done && !sr.err_ack && !sr.clkt_stretch_timeout)
+                while(!sr.transfer_done/* && !sr.err_ack && !sr.clkt_stretch_timeout*/)
                 {
                     sr = status();
                     cb(sr, WriteStage::TransferDoneWait);
