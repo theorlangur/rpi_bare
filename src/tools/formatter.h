@@ -308,7 +308,7 @@ namespace tools
                 return formatter_t<Value>::format_to(std::forward<Dest>(dst), fmtStr, *v); 
             else
             {
-                dst(std::string_view("Err:"));
+                dst(std::string_view("E:"));
                 auto r = formatter_t<Error>::format_to(std::forward<Dest>(dst), fmtStr, v.error());
                 if (!r)
                     return r;

@@ -185,7 +185,7 @@ extern "C" void kernel_main()
                 Timer::delay_ms(2000);
             }else
             {
-                tools::format_to(to_display, "Hi write:{}\n", res);
+                tools::format_to(to_display, "Hi W:{}\n", res);
                 r.show();
                 Timer::delay_ms(2000);
             }
