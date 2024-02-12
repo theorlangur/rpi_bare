@@ -119,7 +119,6 @@ extern "C" void kernel_main()
     r.clear();
     {
         I2C::Init i2cInit;
-        /*
         ADS1115<I2C> ads1115;
         if (ads1115.exists())
         {
@@ -166,8 +165,7 @@ extern "C" void kernel_main()
         {
             tools::format_to(to_display, "Didn't find ADS\nat {}", (uint8_t)ads1115.get_addr());
         }
-        */
-        I2C::Device ads1115(0x48);
+        /*I2C::Device ads1115(0x48);
         auto c = ads1115.communicate();
         //tools::format_to(to_display, "Reading regs\n");
         //for(int i = 0; i < 4; ++i)
@@ -285,6 +283,7 @@ extern "C" void kernel_main()
         }
         else
             tools::format_to(to_display, "Failed to write\nconfig:{}", res);
+        */
     }
     tools::format_to(to_display, "\nFinished");
     r.show();

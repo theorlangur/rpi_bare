@@ -303,7 +303,7 @@ namespace rpi
                 return funcs::s_addr();
             }
 
-            template<rpi::tools::SourceIterator Src, class Callback = decltype(dummy_callback)>
+            template<rpi::tools::SourceIterator Src, bool byte_at_time=false, class Callback = decltype(dummy_callback)>
             static TransferResult write(Src &&pSend, uint16_t len, bool cbEnable=false, Callback callback = {})
             {
                 StatusReg lastStatus;
@@ -322,15 +322,26 @@ namespace rpi
                 clear_fifo();
                 clear_status();
                 auto dlen_reg = funcs::dlen_addr();
-                //TODO: fixme
-                auto preload_len = std::min(len, /*uint16_t(1)*/max_fifo_size);
-                rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, len);
                 uint16_t _len = len;
-                len -= preload_len;
-                while(preload_len--)
+                rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, len);
+                //TODO: fixme
+                if constexpr (!byte_at_time)
                 {
-                    write_fifo(*pSend++);
-                    cb(status(), WriteStage::FifoPreFill);
+                    auto preload_len = std::min(len, max_fifo_size);
+                    len -= preload_len;
+                    while(preload_len--)
+                    {
+                        write_fifo(*pSend++);
+                        cb(status(), WriteStage::FifoPreFill);
+                    }
+                }else
+                {
+                    if (len)
+                    {
+                        --len;
+                        write_fifo(*pSend++);
+                        cb(status(), WriteStage::FifoPreFill);
+                    }
                 }
 
                 ControlReg cr;
@@ -342,13 +353,15 @@ namespace rpi
 
                 StatusReg sr = status();
                 cb(sr, WriteStage::Started);
-                while(len)
+                while(len && !sr.transfer_done)
                 {
-                    //TODO: removeme
-                    while(!sr.tx_fifo_empty)
+                    if constexpr (byte_at_time)
                     {
-                        sr = status();
-                        cb(sr, WriteStage::FifoEmptyWait);
+                        while(!sr.tx_fifo_empty)
+                        {
+                            sr = status();
+                            cb(sr, WriteStage::FifoEmptyWait);
+                        }
                     }
                     while(!sr.tx_can_accept_data)
                     {
@@ -367,7 +380,7 @@ namespace rpi
                     --len;
                 }
 
-                while(!sr.transfer_done/* && !sr.err_ack && !sr.clkt_stretch_timeout*/)
+                while(!sr.transfer_done)
                 {
                     sr = status();
                     cb(sr, WriteStage::TransferDoneWait);
@@ -488,6 +501,7 @@ namespace rpi
                 return rpi::tools::get_bits<0, 8>((uint32_t)*fifo_reg) & 0x0ff;
             }
         public:
+            template<bool write_byte_at_time>
             class Device
             {
             public:
@@ -524,7 +538,7 @@ namespace rpi
                     template<rpi::tools::SourceIterator Src>
                     TransferResult write(Src &&pSend, uint16_t len) const 
                     { 
-                        return I2C<RPi, pins>::write(std::forward<Src>(pSend), len); 
+                        return I2C<RPi, pins>::write<Src, write_byte_at_time>(std::forward<Src>(pSend), len); 
                     }
 
                     template<rpi::tools::SourceIterator Src>
@@ -540,19 +554,20 @@ namespace rpi
 
                     TransferResult write(const uint8_t *pSend, uint16_t len) const 
                     { 
-                        return I2C<RPi, pins>::write(pSend, len); 
+                        using Src = const uint8_t *;
+                        return I2C<RPi, pins>::write<Src, write_byte_at_time>(std::move(pSend), len); 
                     }
 
                     TransferResult write_to_reg_u16(uint8_t r, uint16_t val) const 
                     { 
                         uint8_t buf[] = {r, uint8_t(val >> 8), uint8_t(val & 0xff)};
-                        return I2C<RPi, pins>::write((const uint8_t*)buf, sizeof(buf)); 
+                        return I2C<RPi, pins>::write<const uint8_t *, write_byte_at_time>((const uint8_t*)buf, sizeof(buf)); 
                     }
 
                     TransferResult write_to_reg_i16(uint8_t r, int16_t val) const 
                     { 
                         uint8_t buf[] = {r, uint8_t(val >> 8), uint8_t(val & 0xff)};
-                        return I2C<RPi, pins>::write((const uint8_t*)buf, sizeof(buf)); 
+                        return I2C<RPi, pins>::write<const uint8_t *, write_byte_at_time>((const uint8_t*)buf, sizeof(buf)); 
                     }
 
                     TransferResult write_distinct_bytes(const uint8_t *pSend, uint16_t len) const 

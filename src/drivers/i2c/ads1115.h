@@ -7,6 +7,7 @@
 template<class I2C>
 class ADS1115
 {
+    using Device = I2C::template Device<true>;
     using Timer = rpi::timers::Sys<typename I2C::RPiType>;
     enum class Reg: uint8_t
     {
@@ -239,7 +240,7 @@ private:
         return *read_res;
     }
 
-    GenericResult change_register(I2C::Device::Channel &c, Reg r) const
+    GenericResult change_register(Device::Channel &c, Reg r) const
     { 
         if (auto res = c.write((uint8_t)r))
             return true;
@@ -249,7 +250,7 @@ private:
             .and_then([](auto){ return GenericResult(true);}); 
             */
     }
-    GenericResult write_to_register(I2C::Device::Channel &c, Reg r, uint16_t v) const
+    GenericResult write_to_register(Device::Channel &c, Reg r, uint16_t v) const
     { 
         uint8_t buf[3];
         buf[0] = (uint8_t)r;
@@ -264,9 +265,9 @@ private:
             .and_then([](auto){ return GenericResult(true);}); 
             */
     }
-    GenericResult write_to_register(I2C::Device::Channel &c, Reg r, Config cfg) const { return write_to_register(c, r, cfg.m_dw); }
+    GenericResult write_to_register(Device::Channel &c, Reg r, Config cfg) const { return write_to_register(c, r, cfg.m_dw); }
 
-    I2C::Device m_Device;
+    Device m_Device;
     Config m_Config;
     uint32_t m_SampleWaitTime;
     float m_MaxRange;
