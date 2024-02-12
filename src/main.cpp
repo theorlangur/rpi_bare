@@ -121,17 +121,23 @@ extern "C" void kernel_main()
                 r.show();
                 Timer::delay_ms(2000);
             }
+            float t = 1.f;
             for(int i = 0; i < 20; ++i)
             {
                 r.clear();
                 to_display.p = {0,0};
-                tools::format_to(to_display, "ADS({}):{:x}", i, ads1115.read_single_raw());
-                //tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single());
+                tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single_raw());
+                t *= to_display.p.x;
+                if (to_display.p.y)
+                    t /= to_display.p.y;
+                //tools::format_to(to_display, "ADS({}):{}", i, (int)*ads1115.read_single());
                 r.show();
                 Timer::delay_ms(2000);
             }
+            tools::format_to(to_display, "T:{}", t);
         }else
         {
+            //tools::format_to(to_display, "Test: {}\n", 1.5f);
             tools::format_to(to_display, "Didn't find ADS\nat {}", (uint8_t)ads1115.get_addr());
         }
     }
