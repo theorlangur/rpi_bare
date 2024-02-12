@@ -109,7 +109,8 @@ public:
                 case Config::Rate::Sps475: sps = 475; break;
                 case Config::Rate::Sps860: sps = 860; break;
             }
-            return (1'000'000 + sps - 1) / sps;
+            //+10%
+            return (1'100'000) / sps;
         }
 
         void get_full_scale_range(float &from, float &to) const
