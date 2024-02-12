@@ -7,6 +7,7 @@
 #include "rpi_bare/rpi_i2c_bare.h"
 
 #include "tools/formatter.h"
+#include "rpi_bare/rpi_i2c_fmt.h"
 
 #include "display/icons/display_icons_misc.h"
 #include "display/display_formatter.h"
@@ -96,9 +97,41 @@ extern "C" void kernel_main()
     r.clear();
     {
         I2C::Init i2cInit;
+        /*
         ADS1115<I2C> ads1115;
         if (ads1115.exists())
         {
+            tools::format_to(to_display, "ADS:\n");
+            {
+                tools::format_to(to_display, "Cnv:{:x}\n", ads1115.get_conv_dbg());
+                r.show();
+                Timer::delay_ms(2000);
+            }
+            {
+                tools::format_to(to_display, "Cfg:{:x}\n", ads1115.get_config());
+                r.show();
+                Timer::delay_ms(2000);
+            }
+            {
+                tools::format_to(to_display, "Lo:{:x}\n", ads1115.get_lo_threshold());
+                r.show();
+                Timer::delay_ms(2000);
+            }
+            {
+                tools::format_to(to_display, "Hi:{:x}\n", ads1115.get_hi_threshold());
+                r.show();
+                Timer::delay_ms(2000);
+            }
+            {
+                if (auto res = ads1115.set_hi_threshold(1234))
+                    tools::format_to(to_display, "New Hi:{:x}\n", ads1115.get_hi_threshold());
+                else
+                    tools::format_to(to_display, "Failed hi:{}\n", res);
+
+                r.show();
+                Timer::delay_ms(2000);
+            }
+            Timer::delay_ms(10000);
             for(int i = 0; i < 20; ++i)
             {
                 r.clear();
@@ -111,31 +144,66 @@ extern "C" void kernel_main()
         {
             tools::format_to(to_display, "Didn't find ADS\nat {}", (uint8_t)ads1115.get_addr());
         }
-/*
+        */
         I2C::Device ads1115(0x48);
-        uint8_t reg = 0x01;//config
         auto c = ads1115.communicate();
+        //tools::format_to(to_display, "Reading regs\n");
+        //for(int i = 0; i < 4; ++i)
+        //{
+        //    if (auto res = c.write(uint8_t(i)))
+        //    {
+        //        tools::format_to(to_display, "{}:{:x}\n", i, c.read<uint16_t>());
+        //        r.show();
+        //        Timer::delay_ms(2000);
+        //    }else
+        //    {
+        //        tools::format_to(to_display, "Failed: {}", res);
+        //        break;
+        //    }
+        //}
+        //r.show();
+        //Timer::delay_ms(10000);
+
+        uint8_t reg = 0x01;//config
         tools::format_to(to_display, "Preparing...\n");
         r.show();
         Timer::delay_ms(2000);
+
+        {
+            tools::format_to(to_display, "Hi:{:x}\n", c.read_from_reg<uint16_t>(0b11));
+            r.show();
+            Timer::delay_ms(2000);
+        }
+        {
+            if (auto res = c.write_to_reg_i16(0b11, 1234))
+            {
+                tools::format_to(to_display, "Hi changed\n");
+                r.show();
+                Timer::delay_ms(2000);
+                tools::format_to(to_display, "New Hi:{:x}\n", c.read_from_reg<uint16_t>(0b11));
+                r.show();
+                Timer::delay_ms(2000);
+            }else
+            {
+                tools::format_to(to_display, "Hi write:{}\n", res);
+                r.show();
+                Timer::delay_ms(2000);
+            }
+            Timer::delay_ms(20000);
+        }
+
         ADS1115<I2C>::Config cfg;
         cfg.m_bits.conversion = 1;
         cfg.m_bits.mode = ADS1115<I2C>::Config::Mode::SingleShot;
-        uint8_t buf[3];
+        uint8_t buf[4];
         buf[0] = reg;
         buf[1] = uint8_t(cfg.m_dw >> 8);
         buf[2] = uint8_t(cfg.m_dw & 0xff);
-        bool cfgres = true;
-        for(int i = 0; i < 3; ++i)
-        {
-            if (auto res = c.write(&buf[i], 1); !res)
-            {
-                tools::format_to(to_display, "Failed config\nbyte {}; Err:{}", i, res);
-                cfgres = false;
-                break;
-            }
-        }
-        if (cfgres)
+        buf[3] = reg;
+        tools::format_to(to_display, "Cfg bytes:{}\n", buf);
+        r.show();
+        Timer::delay_ms(2000);
+        if (auto res = c.write(buf, 4); res || res.error().transferred >= 3)
         {
             tools::format_to(to_display, "config done\n");
             r.show();
@@ -154,9 +222,8 @@ extern "C" void kernel_main()
             else
                 tools::format_to(to_display, "Failed to\nchange reg");
         }
-        //else
-        //    tools::format_to(to_display, "Failed to write\nconfig:{}", res);
-*/
+        else
+            tools::format_to(to_display, "Failed to write\nconfig:{}", res);
     }
     tools::format_to(to_display, "\nFinished");
     r.show();
