@@ -121,21 +121,11 @@ extern "C" void kernel_main()
                 r.show();
                 Timer::delay_ms(2000);
             }
-            {
-                if (auto res = ads1115.set_hi_threshold(1234))
-                    tools::format_to(to_display, "New Hi:{:x}\n", ads1115.get_hi_threshold());
-                else
-                    tools::format_to(to_display, "Failed hi:{}\n", res);
-
-                r.show();
-                Timer::delay_ms(2000);
-            }
-            Timer::delay_ms(10000);
             for(int i = 0; i < 20; ++i)
             {
                 r.clear();
                 to_display.p = {0,0};
-                tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single_raw());
+                tools::format_to(to_display, "ADS({}):{:x}", i, ads1115.read_single_raw());
                 r.show();
                 Timer::delay_ms(2000);
             }
