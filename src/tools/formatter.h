@@ -262,7 +262,7 @@ namespace tools
                     }
                 }else
                 {
-                    dst("0X");
+                    dst("0x");
                     for(uint8_t i = 0; i < n; ++i)
                     {
                         uint8_t digit = (v >> (n - i - 1) * 4) & mask;
@@ -272,6 +272,14 @@ namespace tools
                 }
                 return n + 2;
             }
+            bool neg;
+            if constexpr (std::is_signed_v<T>)
+            {
+                neg = v < 0;
+                if (neg)
+                    v = -v;
+            }else
+                neg = false;
 
             char t[16];
             constexpr uint8_t n = std::size(t);
@@ -283,6 +291,13 @@ namespace tools
                 t[n - ++d] = '0' + (v % 10);
                 v /= 10;
             }
+
+            if constexpr (std::is_signed_v<T>)
+            {
+                if (neg)
+                    t[n - ++d] = '-';
+            }
+
             dst(std::string_view(t + n - d, d));
             return d;
         }
