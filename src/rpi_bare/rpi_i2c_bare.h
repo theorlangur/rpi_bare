@@ -282,7 +282,7 @@ namespace rpi
             {
                 clear_fifo();
                 DivReg d;
-                d.div = 0x5cd;//1500, 150MHz/1500 = 100KHz
+                d.div = 0x5cd >> 2;//1500, 150MHz/1500 = 100KHz
                 d.write_to(funcs::div_addr());
             }
 
@@ -304,13 +304,13 @@ namespace rpi
             }
 
             template<rpi::tools::SourceIterator Src, class Callback = decltype(dummy_callback)>
-            static TransferResult write(Src &&pSend, uint16_t len, Callback callback = {})
+            static TransferResult write(Src &&pSend, uint16_t len, bool cbEnable=false, Callback callback = {})
             {
                 StatusReg lastStatus;
                 WriteStage lastStage = WriteStage::Invalid;
                 auto cb = [&](StatusReg sr, WriteStage s)
                 {
-                    if (callback && (sr.raw() != lastStatus.raw() || lastStage != s))
+                    if (cbEnable && (uint16_t(sr.raw()) != uint16_t(lastStatus.raw()) || lastStage != s))
                     {
                         lastStatus = sr;
                         lastStage = s;
@@ -362,7 +362,8 @@ namespace rpi
                         return std::unexpected(Error{sr, uint16_t(_len - len)});
 
                     write_fifo(*pSend++);
-                    cb(status(), WriteStage::AfterFifoInLoop);
+                    sr = status();
+                    cb(sr, WriteStage::AfterFifoInLoop);
                     --len;
                 }
 

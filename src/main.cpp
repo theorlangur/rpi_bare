@@ -37,6 +37,28 @@ struct ConsoleOutput
 };
 #endif
 
+struct WriteTraces
+{
+    uint32_t time;
+    rpi::i2c::StatusReg status;
+    rpi::i2c::WriteStage stage;
+};
+
+namespace tools
+{
+    template<>
+    struct formatter_t<WriteTraces>
+    {
+        template<FormatDestination Dest>
+        static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, WriteTraces const&v)
+        {
+            return tools::format_to(std::forward<Dest>(dst), "{}u-{:X}-{}", v.time, uint16_t(v.status.raw()), v.stage);
+        }
+    };
+};
+
+WriteTraces g_WriteTraces[4096];
+
 extern "C" void kernel_main()
 {
     using RPi = rpi::RPiBplus;
@@ -175,7 +197,27 @@ extern "C" void kernel_main()
             Timer::delay_ms(2000);
         }
         {
-            if (auto res = c.write_to_reg_i16(0b11, 1234))
+            uint8_t buf[3];
+            buf[0] = 0b11;
+            buf[1] = uint16_t(1234) >> 8;
+            buf[2] = uint16_t(1234) & 0xff;
+            size_t xn = 0;
+            uint64_t baseTime = Timer::now();
+            bool overrun = false;
+            auto cb = [&](rpi::i2c::StatusReg sr, rpi::i2c::WriteStage s)
+            {
+                if (overrun || xn >= std::size(g_WriteTraces))
+                {
+                    overrun = true;
+                    return;
+                }
+                auto &t = g_WriteTraces[xn++];
+                t.time = uint32_t(Timer::now() - baseTime);
+                t.stage = s;
+                t.status = sr;
+            };
+            //if (auto res = c.write(buf, 3))
+            if (auto res = I2C::write((const uint8_t*)buf, 3, true, cb))
             {
                 tools::format_to(to_display, "Hi changed\n");
                 r.show();
@@ -185,6 +227,25 @@ extern "C" void kernel_main()
                 Timer::delay_ms(2000);
             }else
             {
+                constexpr int lines = 7;
+                for(int x = 0; x < 100; ++x)
+                {
+                    r.clear();
+                    to_display.p = {0,0};
+                    for(int i = 0; i<xn; ++i)
+                    {
+                        if (i && ((i % lines) == 0))
+                        {
+                            to_display.p = {0,0};
+                            r.show();
+                            Timer::delay_ms(10000);
+                            r.clear();
+                        }
+                        tools::format_to(to_display, "{}\n", g_WriteTraces[i]);
+                    }
+                    r.show();
+                    Timer::delay_ms(10000);
+                }
                 tools::format_to(to_display, "Hi:{}\n", res);
                 r.show();
                 Timer::delay_ms(2000);
