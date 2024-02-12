@@ -266,6 +266,9 @@ namespace rpi
             static void configure_all()
             {
                 clear_fifo();
+                DivReg d;
+                d.div = 0x5cd;//1500, 150MHz/1500 = 100KHz
+                d.write_to(funcs::div_addr());
             }
 
             static void set_slave_addr(uint8_t addr)
@@ -291,7 +294,8 @@ namespace rpi
                 clear_fifo();
                 clear_status();
                 auto dlen_reg = funcs::dlen_addr();
-                auto preload_len = std::min(len, max_fifo_size);
+                //TODO: fixme
+                auto preload_len = std::min(len, uint16_t(1)/*max_fifo_size*/);
                 rpi::tools::set_bits<0, 16>((volatile uint32_t*)dlen_reg, len);
                 uint16_t _len = len;
                 len -= preload_len;
@@ -308,6 +312,9 @@ namespace rpi
                 StatusReg sr = status();
                 while(len)
                 {
+                    //TODO: removeme
+                    while(!sr.tx_fifo_empty)
+                        sr = status();
                     while(!sr.tx_can_accept_data)
                         sr = status();
 
@@ -329,7 +336,7 @@ namespace rpi
                     return std::unexpected(Error{ErrorCode::Timeout, _len});
 
                 clear_status();
-                return _len - len;
+                return _len;
             }
 
             static TransferResult write_byte(uint8_t b)
