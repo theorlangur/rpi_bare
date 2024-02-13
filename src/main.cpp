@@ -126,12 +126,12 @@ extern "C" void kernel_main()
             {
                 r.clear();
                 to_display.p = {0,0};
-                tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single_raw());
+                //tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single_raw());
                 //t *= to_display.p.x;
                 //if (to_display.p.y == 0)
-                //    t /= to_display.p.y + 2;
+                    //t /= to_display.p.y + 2;
                 //tools::format_to(to_display, "\nfloat:{}", t);
-                //tools::format_to(to_display, "ADS({}):{}", i, (int)*ads1115.read_single());
+                tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single());
                 r.show();
                 Timer::delay_ms(2000);
             }
