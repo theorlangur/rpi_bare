@@ -29,8 +29,8 @@ public:
 
     struct Error
     {
-        ErrorCode code;
         rpi::i2c::Error i2c_error;
+        ErrorCode code;
     };
 
     template<std::integral T>
@@ -39,7 +39,7 @@ public:
     using FloatResult = std::expected<float, Error>;
 
     template<ErrorCode mainError>
-    static inline Error i2c_error_to_this_error(rpi::i2c::Error &&e) { return {mainError, std::move(e)}; }
+    static inline Error i2c_error_to_this_error(rpi::i2c::Error &&e) { return {std::move(e), mainError}; }
 
     struct Config
     {
