@@ -107,6 +107,7 @@ extern "C" void kernel_main()
         ADS1115<I2C> ads1115;
         if (ads1115.exists())
         {
+            ads1115.set_measure_range_mode(ADS1115<I2C>::Config::get_pga_for_voltage(3.1f));
             tools::format_to(to_display, "ADS:\n");
             {
                 tools::format_to(to_display, "Cfg:{:x}\n", ads1115.get_config());

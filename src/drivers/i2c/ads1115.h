@@ -20,11 +20,13 @@ public:
     enum class ErrorCode: uint8_t
     {
         I2Ce = 1,
-        Config = 2,
+        ConfigSingle = 2,
         Conversion = 3,
         WriteReg = 4,
         ChangeReg = 5,
         ReadReg = 6,
+        ConfigContinuous = 7,
+        UnexpectedMode = 8,
     };
 
     struct Error
@@ -136,6 +138,17 @@ public:
             }
         }
 
+        static inline constexpr PGA get_pga_for_voltage(float v)
+        {
+            if (v < 0) v = -v;
+            if (v > 4.096f) return PGA::FSR_6_144;
+            if (v > 2.048f) return PGA::FSR_4_096;
+            if (v > 1.024f) return PGA::FSR_2_048;
+            if (v > 0.512f) return PGA::FSR_1_024;
+            if (v > 0.256f) return PGA::FSR_0_512;
+            return PGA::FSR_0_256_0;
+        }
+
         union
         {
             struct
@@ -161,6 +174,7 @@ public:
         SDA = 0x4A,
         SCL = 0x4B,
     };
+
     ADS1115(Address addr = Address::GND):m_Device((uint8_t)addr) 
     {
         m_SampleWaitTime = m_Config.get_wait_time_us();
@@ -171,6 +185,40 @@ public:
 
     bool exists() const { return m_Device.exists(); }
 
+    Config::Rate get_conversion_rate() const
+    {
+        return m_Config.m_bits.data_rate;
+    }
+
+    GenericResult set_conversion_rate(Config::Rate r)
+    {
+        m_Config.m_bits.data_rate = r;
+        if (m_Config.m_bits.conversion && m_Config.m_bits.mode == Config::Mode::Continuous)
+        {
+            //continuous running atm
+            //start again with new rate
+            return update_config();
+        }
+        return {};
+    }
+
+    Config::PGA get_measure_range_mode() const
+    {
+        return m_Config.m_bits.pga;
+    }
+
+    GenericResult set_measure_range_mode(Config::PGA p)
+    {
+        m_Config.m_bits.pga = p;
+        if (m_Config.m_bits.conversion && m_Config.m_bits.mode == Config::Mode::Continuous)
+        {
+            //continuous running atm
+            //start again with new rate
+            return update_config();
+        }
+        return {};
+    }
+
     IntResult<int16_t> get_hi_threshold() const
     {
         return read_register<int16_t, Reg::HiThreshold>();
@@ -178,8 +226,7 @@ public:
 
     IntResult<int16_t> set_hi_threshold(int16_t v) const
     {
-        auto c = m_Device.communicate();
-        return write_to_register(c, Reg::HiThreshold, v);
+        return write_to_register(m_Device.communicate(), Reg::HiThreshold, v);
     }
 
     IntResult<int16_t> get_lo_threshold() const
@@ -189,8 +236,7 @@ public:
 
     IntResult<int16_t> set_lo_threshold(int16_t v) const
     {
-        auto c = m_Device.communicate();
-        return write_to_register(c, Reg::LoThreshold, v);
+        return write_to_register(m_Device.communicate(), Reg::LoThreshold, v);
     }
 
     IntResult<uint16_t> get_config() const
@@ -198,13 +244,44 @@ public:
         return read_register<uint16_t, Reg::Config>();
     }
 
-    IntResult<int16_t> read_single_raw() const
+    GenericResult run_continuous()
     {
-        auto c = m_Device.communicate();
-        Config cfg = m_Config;
-        cfg.m_bits.conversion = 1;
-        cfg.m_bits.mode = Config::Mode::SingleShot;
-        if (auto r = write_to_register(c, Reg::Config, cfg); !r)
+        m_Config.m_bits.conversion = 1;
+        m_Config.m_bits.mode = Config::Mode::Continuous;
+        return update_config();
+    }
+
+    GenericResult stop_continuous()
+    {
+        if (m_Config.m_bits.mode != Config::Mode::Continuous)
+            return std::unexpected(Error{ErrorCode::UnexpectedMode});
+        m_Config.m_bits.conversion = 0;
+        m_Config.m_bits.mode = Config::Mode::Continuous;
+        return update_config();
+    }
+
+    IntResult<int16_t> read_now_raw() const
+    {
+        return read_register<int16_t, Reg::Conversion, ErrorCode::Conversion>();
+    }
+
+    FloatResult read_now() const
+    {
+        return read_now_raw().and_then([&](int16_t iv){
+            float res;
+            if (iv < 0)
+                res = -((m_MinRange * iv) / int16_t(0x8000));
+            else
+                res = (m_MaxRange * iv) / int16_t(0x7fff);
+            return FloatResult(res);
+        });
+    }
+
+    IntResult<int16_t> read_single_raw()
+    {
+        m_Config.m_bits.conversion = 1;
+        m_Config.m_bits.mode = Config::Mode::SingleShot;
+        if (auto r = update_config(); !r)
             return std::unexpected(r.error());
 
         Timer::delay_microseconds(m_SampleWaitTime);
@@ -212,7 +289,7 @@ public:
         return read_register<int16_t, Reg::Conversion, ErrorCode::Conversion>();
     }
 
-    FloatResult read_single() const
+    FloatResult read_single()
     {
         return read_single_raw().and_then([&](int16_t iv){
             float res;
@@ -224,6 +301,14 @@ public:
         });
     }
 private:
+    GenericResult update_config()
+    {
+        auto c = m_Device.communicate();
+        if (auto r = write_to_register(c, Reg::Config, m_Config); !r)
+            return std::unexpected(r.error());
+        return {};
+    }
+
     template<typename T, Reg reg, ErrorCode errCode = ErrorCode::ReadReg>
     IntResult<T> read_register() const
     {
