@@ -197,12 +197,23 @@ namespace tools
             //printing decimal part
             uint8_t r = d;
             d = 0;
-            while(decPart)
+            if (fmtStr.size() >= 2 && fmtStr[0] == '.' && fmtStr[1] >= '0' && fmtStr[1] <= '9')//amount of decimal places
             {
-                auto digit = decPart % 10;
-                if (digit || d)
+                uint8_t maxDecimalPlaces = fmtStr[1] - '0';
+                for(;d < maxDecimalPlaces; ++d, decPart /= 10)
+                {
+                    auto digit = decPart % 10;
                     intStr[n - ++d] = '0' + digit;
-                decPart /= 10;
+                }
+            }else
+            {
+                while(decPart)
+                {
+                    auto digit = decPart % 10;
+                    if (digit || d)
+                        intStr[n - ++d] = '0' + digit;
+                    decPart /= 10;
+                }
             }
             if (d)
                 intStr[n - ++d] = '.';
