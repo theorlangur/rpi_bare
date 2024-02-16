@@ -46,9 +46,9 @@ using Timer = rpi::timers::Sys<RPi>;
 using D = DisplaySH1106<SPI>;
 
 template<tools::FormatDestination Dest>
-std::expected<size_t, tools::FormatError> format_value_to(Dest const&dst, std::string_view const& fmtStr, ADS1115<I2C>::Error const& e)
+std::expected<size_t, tools::FormatError> format_value_to(Dest &&dst, std::string_view const& fmtStr, ADS1115<I2C>::Error const& e)
 {
-    return 0;
+    return tools::format_to(std::forward<Dest>(dst), "ADC:{};I2C:{}", e.code, e.i2c_error.code);
 }
 
 extern "C" void kernel_main()
