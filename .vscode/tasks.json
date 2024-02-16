@@ -25,6 +25,13 @@
             "problemMatcher": []
         },
         {
+            "label": "CMake Bare Asm Cfg",
+            "type": "shell",
+            "command": "cmake -H${workspaceRoot} -BbuildAsm${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare_asm.cmake",
+            "dependsOn": "Clear CMake Cfg",
+            "problemMatcher": []
+        },
+        {
             "label": "CMake Normal Cfg",
             "type": "shell",
             "command": "cmake -H${workspaceRoot} -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../rpi_toolchain.cmake",
@@ -42,6 +49,15 @@
             "label": "CMake Build",
             "type": "shell",
             "command": "cmake --build build${input:buildtype} --verbose",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "CMake Asm Build",
+            "type": "shell",
+            "command": "cmake --build buildAsm${input:buildtype} --verbose",
             "group": {
                 "kind": "build",
                 "isDefault": true
