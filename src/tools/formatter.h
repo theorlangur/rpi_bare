@@ -2,6 +2,7 @@
 #define FORMATTER_H_
 #include <string_view>
 #include <expected>
+#include <concepts>
 
 extern "C" size_t strlen(const char *pStr);
 
@@ -22,8 +23,22 @@ namespace tools
         {a(std::string_view{})};//being able to 'output' a string
     };
 
+    template<class T, class Dest>
+    concept FunctionFormattable = requires(Dest &&dst, T const& a)
+    {
+        { format_value_to(std::forward<Dest>(dst), std::declval<std::string_view const&>(), a) } -> std::same_as<std::expected<size_t, FormatError>>;
+    };
+
     template<class T>
-    struct formatter_t;
+    struct formatter_t
+    {
+        template<FormatDestination Dest>
+        static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, T const& v)
+        {
+            static_assert(requires {requires FunctionFormattable<T, Dest>;}, "Don't know how to format T");
+            return format_value_to(std::forward<Dest>(dst), fmtStr, v);
+        }
+    };
 
     template<std::floating_point F>
     struct FloatingPointFormatTraits;
