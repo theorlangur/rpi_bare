@@ -17,7 +17,7 @@ class ADS1115
         HiThreshold = 0b11
     };
 public:
-    enum class Error: uint8_t
+    enum class ErrorCode: uint8_t
     {
         I2Ce = 1,
         Config = 2,
@@ -26,10 +26,20 @@ public:
         ChangeReg = 5,
         ReadReg = 6,
     };
+
+    struct Error
+    {
+        ErrorCode code;
+        rpi::i2c::Error i2c_error;
+    };
+
     template<std::integral T>
-    using IntResult = std::expected<T, Error/*typename I2C::Error*/>;
-    using GenericResult = std::expected<bool, Error/*typename I2C::Error*/>;
-    using FloatResult = std::expected<float, Error/*typename I2C::Error*/>;
+    using IntResult = std::expected<T, Error>;
+    using GenericResult = std::expected<void, Error>;
+    using FloatResult = std::expected<float, Error>;
+
+    template<ErrorCode mainError>
+    static inline Error i2c_error_to_this_error(rpi::i2c::Error &&e) { return {mainError, std::move(e)}; }
 
     struct Config
     {
@@ -161,11 +171,6 @@ public:
 
     bool exists() const { return m_Device.exists(); }
 
-    IntResult<uint16_t> get_conv_dbg() const
-    {
-        return read_register<uint16_t, Reg::Conversion>();
-    }
-
     IntResult<int16_t> get_hi_threshold() const
     {
         return read_register<int16_t, Reg::HiThreshold>();
@@ -203,17 +208,8 @@ public:
             return std::unexpected(r.error());
 
         Timer::delay_microseconds(m_SampleWaitTime);
-        if (auto r = change_register(c, Reg::Conversion); !r)
-            return std::unexpected(r.error());
 
-        auto read_res = c.template read<int16_t>();
-        if (!read_res)
-            return std::unexpected(Error::Conversion);
-        return *read_res;
-        /*return c.template read<int16_t>()
-                .transform_error([](auto){ return IntResult<int16_t>(std::unexpect_t{}, Error::Conversion); })
-                .and_then([](auto v){ return IntResult<int16_t>(v);}); 
-                */
+        return read_register<int16_t, Reg::Conversion, ErrorCode::Conversion>();
     }
 
     FloatResult read_single() const
@@ -228,43 +224,25 @@ public:
         });
     }
 private:
-    template<typename T, Reg reg>
+    template<typename T, Reg reg, ErrorCode errCode = ErrorCode::ReadReg>
     IntResult<T> read_register() const
     {
-        auto c = m_Device.communicate();
-        if (auto r = change_register(c, reg); !r)
-            return std::unexpected(r.error());
-
-        auto read_res = c.template read<T>();
-        if (!read_res)
-            return std::unexpected(Error::ReadReg);
-        return *read_res;
+        return rpi::tools::convert_expected<Error>(
+                m_Device
+                    .communicate()
+                    .template read_from_reg<T>(uint8_t(reg))
+                    , i2c_error_to_this_error<errCode>);
     }
 
-    GenericResult change_register(Device::Channel &c, Reg r) const
-    { 
-        if (auto res = c.write((uint8_t)r))
-            return true;
-        return std::unexpected(Error::ChangeReg);
-        /*return c.write((uint8_t)r)
-            .transform_error([](auto e){ return GenericResult(std::unexpect_t{}, Error::ChangeReg); })
-            .and_then([](auto){ return GenericResult(true);}); 
-            */
-    }
     GenericResult write_to_register(Device::Channel &c, Reg r, uint16_t v) const
     { 
-        uint8_t buf[3];
-        buf[0] = (uint8_t)r;
-        buf[1] = uint8_t(v >> 8);
-        buf[2] = uint8_t(v & 0xff);
-        if (auto res = c.write(buf, sizeof(buf)))
-            return true;
-
-        return std::unexpected(Error::WriteReg);
-        /*return c.write(buf, sizeof(buf))
-            .transform_error([](auto e){ return GenericResult(std::unexpect_t{}, Error::WriteReg); })
-            .and_then([](auto){ return GenericResult(true);}); 
-            */
+        if (auto res = rpi::tools::convert_expected<Error>(
+                m_Device
+                    .communicate()
+                    .write_to_reg_u16(uint8_t(r), v)
+                    , i2c_error_to_this_error<ErrorCode::WriteReg>); !res)
+            return std::unexpected(res.error());
+        return {};
     }
     GenericResult write_to_register(Device::Channel &c, Reg r, Config cfg) const { return write_to_register(c, r, cfg.m_dw); }
 
@@ -274,5 +252,4 @@ private:
     float m_MaxRange;
     float m_MinRange;
 };
-
 #endif
