@@ -37,18 +37,25 @@ struct ConsoleOutput
 };
 #endif
 
+using RPi = rpi::RPiBplus;
+using I2CPins = rpi::RPiBplus::I2C1_Pins;
+using I2C = rpi::i2c::I2C<RPi, I2CPins>;
+using SPI = rpi::RPiBplus::SPI0_Pins;
+constexpr auto CS = SPI::Chip::CS0;
+using Timer = rpi::timers::Sys<RPi>;
+using D = DisplaySH1106<SPI>;
+
+template<tools::FormatDestination Dest>
+std::expected<size_t, tools::FormatError> format_value_to(Dest const&dst, std::string_view const& fmtStr, ADS1115<I2C>::Error const& e)
+{
+    return 0;
+}
+
 extern "C" void kernel_main()
 {
-    using RPi = rpi::RPiBplus;
     //using SPI = rpi::RPiBplus::SPI1_Pins;
     //constexpr auto CS = SPI::Chip::CS2;
-    using SPI = rpi::RPiBplus::SPI0_Pins;
-    constexpr auto CS = SPI::Chip::CS0;
-    using Timer = rpi::timers::Sys<RPi>;
-    using D = DisplaySH1106<SPI>;
 
-    using I2CPins = rpi::RPiBplus::I2C1_Pins;
-    using I2C = rpi::i2c::I2C<RPi, I2CPins>;
 
     /*I2C::Init i2cInit;
     uint8_t xxx = 0;
@@ -101,11 +108,6 @@ extern "C" void kernel_main()
         if (ads1115.exists())
         {
             tools::format_to(to_display, "ADS:\n");
-            {
-                tools::format_to(to_display, "Cnv:{:x}\n", ads1115.get_conv_dbg());
-                r.show();
-                Timer::delay_ms(2000);
-            }
             {
                 tools::format_to(to_display, "Cfg:{:x}\n", ads1115.get_config());
                 r.show();
