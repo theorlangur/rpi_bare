@@ -125,16 +125,16 @@ public:
             return (1'100'000) / sps;
         }
 
-        void get_full_scale_range(float &from, float &to) const
+        void get_full_scale_range(float &maxVoltage) const
         {
             switch(m_bits.pga)
             {
-                case PGA::FSR_6_144: from = -6.144f; to = 6.144f; break;
-                case PGA::FSR_4_096: from = -4.096f; to = 4.096f; break;
-                case PGA::FSR_2_048: from = -2.048f; to = 2.048f; break;
-                case PGA::FSR_1_024: from = -1.024f; to = 1.024f; break;
-                case PGA::FSR_0_512: from = -0.512f; to = 0.512f; break;
-                default: from = -0.256; to = 0.256; break;
+                case PGA::FSR_6_144: maxVoltage = 6.144f; break;
+                case PGA::FSR_4_096: maxVoltage = 4.096f; break;
+                case PGA::FSR_2_048: maxVoltage = 2.048f; break;
+                case PGA::FSR_1_024: maxVoltage = 1.024f; break;
+                case PGA::FSR_0_512: maxVoltage = 0.512f; break;
+                default: maxVoltage = 0.256; break;
             }
         }
 
@@ -178,7 +178,7 @@ public:
     ADS1115(Address addr = Address::GND):m_Device((uint8_t)addr) 
     {
         m_SampleWaitTime = m_Config.get_wait_time_us();
-        m_Config.get_full_scale_range(m_MinRange, m_MaxRange);
+        m_Config.get_full_scale_range(m_MaxVoltage);
     }
     void set_addr(Address addr) { m_Device.set_addr((uint8_t)addr); }
     Address get_addr() const { return (Address)m_Device.get_addr(); }
@@ -193,6 +193,7 @@ public:
     GenericResult set_conversion_rate(Config::Rate r)
     {
         m_Config.m_bits.data_rate = r;
+        m_SampleWaitTime = m_Config.get_wait_time_us();
         if (m_Config.m_bits.conversion && m_Config.m_bits.mode == Config::Mode::Continuous)
         {
             //continuous running atm
@@ -268,12 +269,7 @@ public:
     FloatResult read_now() const
     {
         return read_now_raw().and_then([&](int16_t iv){
-            float res;
-            if (iv < 0)
-                res = -((m_MinRange * iv) / int16_t(0x8000));
-            else
-                res = (m_MaxRange * iv) / int16_t(0x7fff);
-            return FloatResult(res);
+            return FloatResult((m_MaxVoltage * iv) / int16_t(0x7fff));
         });
     }
 
@@ -292,12 +288,7 @@ public:
     FloatResult read_single()
     {
         return read_single_raw().and_then([&](int16_t iv){
-            float res;
-            if (iv < 0)
-                res = -((m_MinRange * iv) / int16_t(0x8000));
-            else
-                res = (m_MaxRange * iv) / int16_t(0x7fff);
-            return FloatResult(res);
+            return FloatResult((m_MaxVoltage * iv) / int16_t(0x7fff));
         });
     }
 private:
@@ -334,7 +325,6 @@ private:
     Device m_Device;
     Config m_Config;
     uint32_t m_SampleWaitTime;
-    float m_MaxRange;
-    float m_MinRange;
+    float m_MaxVoltage;
 };
 #endif
