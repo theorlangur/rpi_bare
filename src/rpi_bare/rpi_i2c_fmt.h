@@ -28,14 +28,8 @@ namespace tools
                     break;
             }
             err_bits[err_n++] = ';';
-            err_bits[err_n++] = 'B';
-            err_bits[err_n++] = ':';
             dst(std::string_view(err_bits, err_n));
-            if (auto r = formatter_t<decltype(e.transferred)>::format_to(std::forward<Dest>(dst), fmtStr, e.transferred); !r)
-                return r;
-            else
-                res += *r;
-            return res;
+            return err_n;
         }
     };
 }

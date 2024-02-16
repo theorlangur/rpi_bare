@@ -207,7 +207,6 @@ namespace rpi
         };
         struct Error
         {
-            uint16_t transferred;
             ErrorCode code;
         };
         using TransferResult = std::expected<uint16_t, Error>;
@@ -332,9 +331,9 @@ namespace rpi
                         sr = status();
 
                     if (sr.clkt_stretch_timeout)
-                        return std::unexpected(Error{uint16_t(_len - len), ErrorCode::Timeout});
+                        return std::unexpected(Error{ErrorCode::Timeout});
                     if (sr.err_ack)
-                        return std::unexpected(Error{uint16_t(_len - len), ErrorCode::Err});
+                        return std::unexpected(Error{ErrorCode::Err});
 
                     write_fifo(*pSend++);
                     sr = status();
@@ -345,12 +344,12 @@ namespace rpi
                     sr = status();
 
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error{_len, ErrorCode::Timeout});
+                    return std::unexpected(Error{ErrorCode::Timeout});
                 if (sr.err_ack)
-                    return std::unexpected(Error{_len, ErrorCode::Err});
+                    return std::unexpected(Error{ErrorCode::Err});
 
                 clear_status();
-                return _len;
+                return _len - len;
             }
 
             static TransferResult write_byte(uint8_t b)
@@ -373,9 +372,9 @@ namespace rpi
                     sr = status();
 
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error{1, ErrorCode::Timeout});
+                    return std::unexpected(Error{ErrorCode::Timeout});
                 if (sr.err_ack)
-                    return std::unexpected(Error{1, ErrorCode::Err});
+                    return std::unexpected(Error{ErrorCode::Err});
 
                 clear_status();
                 return 1;
@@ -420,9 +419,9 @@ namespace rpi
                 }
 
                 if (sr.clkt_stretch_timeout)
-                    return std::unexpected(Error{uint16_t(_len - len), ErrorCode::Timeout});
+                    return std::unexpected(Error{ErrorCode::Timeout});
                 if (sr.err_ack)
-                    return std::unexpected(Error{uint16_t(_len - len), ErrorCode::Err});
+                    return std::unexpected(Error{ErrorCode::Err});
 
                 clear_status();
                 return _len - len;
