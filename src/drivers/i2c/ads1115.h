@@ -4,11 +4,9 @@
 #include "../../rpi_bare/rpi_i2c_bare.h"
 #include "../../rpi_bare/rpi_timers_bare.h"
 
-template<class I2C>
-class ADS1115
+class ADS1115Base
 {
-    using Device = I2C::template Device<true>;
-    using Timer = rpi::timers::Sys<typename I2C::RPiType>;
+protected:
     enum class Reg: uint8_t
     {
         Conversion  = 0b00,
@@ -174,7 +172,14 @@ public:
         SDA = 0x4A,
         SCL = 0x4B,
     };
+};
 
+template<class I2C>
+class ADS1115: public ADS1115Base
+{
+    using Device = I2C::template Device<true>;
+    using Timer = rpi::timers::Sys<typename I2C::RPiType>;
+public:
     ADS1115(Address addr = Address::GND):m_Device((uint8_t)addr) 
     {
         m_SampleWaitTime = m_Config.get_wait_time_us();
