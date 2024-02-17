@@ -53,6 +53,8 @@ std::expected<size_t, tools::FormatError> format_value_to(Dest &&dst, std::strin
 
 extern "C" void kernel_main()
 {
+    //ConsoleOutput cons;
+    //tools::format_to(cons, "ADS:{.3}", 1.23456f);
     //using SPI = rpi::RPiBplus::SPI1_Pins;
     //constexpr auto CS = SPI::Chip::CS2;
 
@@ -124,21 +126,42 @@ extern "C" void kernel_main()
                 r.show();
                 Timer::delay_ms(2000);
             }
-            float t = 0.5f;
-            for(int i = 0; i < 20; ++i)
+
+            ads1115.set_conversion_rate(ADS1115<I2C>::Config::Rate::Sps860);
+            if (ads1115.run_continuous())
             {
-                r.clear();
-                to_display.p = {0,0};
-                //tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single_raw());
-                //t *= to_display.p.x;
-                //if (to_display.p.y == 0)
-                    //t /= to_display.p.y + 2;
-                //tools::format_to(to_display, "\nfloat:{}", t);
-                tools::format_to(to_display, "ADS({}):{}", i, ads1115.read_single());
+                tools::format_to(to_display, "Starting to\n measure");
                 r.show();
-                Timer::delay_ms(2000);
+                Timer::TimeTest measureTime;
+                int updates = 0;
+                float lastMeasured;
+                while(measureTime.time_passed() < 20 * 1'000'000)
+                {
+                    if (auto res = ads1115.read_now())
+                    {
+                        float f = *res;
+                        if (!updates || f != lastMeasured)
+                        {
+                            ++updates;
+                            lastMeasured = f;
+                            r.clear();
+                            to_display.p = {0,0};
+                            tools::format_to(to_display, "ADS:{:.3}v", lastMeasured);
+                            r.show();
+                        }
+                    }else
+                    {
+                        r.clear();
+                        to_display.p = {0,0};
+                        tools::format_to(to_display, "Failed to read:\n{}", res);
+                        r.show();
+                    }
+                }
+                ads1115.stop_continuous();
+            }else
+            {
+                tools::format_to(to_display, "ADS\nfailed to run\ncontinuous mode");
             }
-            tools::format_to(to_display, "T:{}", t);
         }else
         {
             //tools::format_to(to_display, "Test: {}\n", 1.5f);
