@@ -18,28 +18,28 @@
         {
             "label": "CMake Bare Cfg",
             "type": "shell",
-            "command": "cmake -H${workspaceRoot} -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare.cmake",
+            "command": "cmake -H. -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare.cmake",
             "dependsOn": "Clear CMake Cfg",
             "problemMatcher": []
         },
         {
             "label": "CMake Bare Asm Cfg",
             "type": "shell",
-            "command": "cmake -H${workspaceRoot} -BbuildAsm${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare_asm.cmake",
+            "command": "cmake -H. -BbuildAsm${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare_asm.cmake",
             "dependsOn": "Clear CMake Cfg",
             "problemMatcher": []
         },
         {
             "label": "CMake Normal Cfg",
             "type": "shell",
-            "command": "cmake -H${workspaceRoot} -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../rpi_toolchain.cmake",
+            "command": "cmake -H. -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../rpi_toolchain.cmake",
             "dependsOn": "Clear CMake Cfg",
             "problemMatcher": []
         },
         {
             "label": "CMake PC Cfg",
             "type": "shell",
-            "command": "cmake -H${workspaceRoot} -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare_fake_pc.cmake",
+            "command": "cmake -H. -Bbuild${input:buildtype} -DCMAKE_BUILD_TYPE=${input:buildtype} --toolchain=../bare_toolchain/rpi_toolchain_bare_fake_pc.cmake",
             "dependsOn": "Clear CMake Cfg",
             "problemMatcher": []
         },
