@@ -57,7 +57,7 @@
         {
             "label": "CMake Asm Build",
             "type": "shell",
-            "command": "cmake --build buildAsm${input:buildtype} --verbose",
+            "command": "cmake --build buildAsm${input:buildtype} --verbose && llvm-objdump -C --source --line-numbers --no-leading-addr --no-show-raw-insn buildAsm${input:buildtype}/bare_oled > buildAsm${input:buildtype}/bare_oled.asm",
             "group": {
                 "kind": "build",
                 "isDefault": true
