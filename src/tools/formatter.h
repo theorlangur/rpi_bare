@@ -29,6 +29,18 @@ namespace tools
         { format_value_to(std::forward<Dest>(dst), std::declval<std::string_view const&>(), a) } -> std::same_as<std::expected<size_t, FormatError>>;
     };
 
+    static inline constexpr uint32_t g_DecimalFactors[] = {
+        1,
+        10,
+        100,
+        1000,
+        10000,
+        100000,
+        1000000,
+        10000000,
+        100000000,
+    };
+
     template<class T>
     struct formatter_t
     {
@@ -205,17 +217,15 @@ namespace tools
                     full = true;
                 else if (maxDecimalPlaces)
                 {
-                    uint32_t maxDecimalVal = 1;
-                    for(uint8_t i = 0; i < maxDecimalPlaces; ++i, maxDecimalVal *= 10);
+                    full = false;
+                    decPart /= g_DecimalFactors[9 - maxDecimalPlaces];
                     for(;(d < maxDecimalPlaces) && decPart; decPart /= 10)
                     {
-                        if (decPart < maxDecimalVal)
-                        {
-                            auto digit = decPart % 10;
-                            intStr[n - ++d] = '0' + digit;
-                        }
+                        auto digit = decPart % 10;
+                        intStr[n - ++d] = '0' + digit;
                     }
-                }
+                }else
+                    full = false;
             }else
                 full = true;
 
