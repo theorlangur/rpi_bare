@@ -211,6 +211,7 @@ public:
     GenericResult set_measure_range_mode(Config::PGA p)
     {
         m_Config.m_bits.pga = p;
+        m_Config.get_full_scale_range(m_MaxVoltage);
         if (m_Config.m_bits.conversion && m_Config.m_bits.mode == Config::Mode::Continuous)
         {
             //continuous running atm
@@ -255,7 +256,7 @@ public:
     GenericResult stop_continuous()
     {
         if (m_Config.m_bits.mode != Config::Mode::Continuous)
-            return std::unexpected(Error{ErrorCode::UnexpectedMode});
+            return std::unexpected(Error{{},ErrorCode::UnexpectedMode});
         m_Config.m_bits.conversion = 0;
         m_Config.m_bits.mode = Config::Mode::Continuous;
         return update_config();
