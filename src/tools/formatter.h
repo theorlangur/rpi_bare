@@ -196,16 +196,30 @@ namespace tools
             dst(std::string_view(intStr + n - d, d));
             //printing decimal part
             uint8_t r = d;
+            bool full;
             d = 0;
             if (fmtStr.size() >= 2 && fmtStr[0] == '.' && fmtStr[1] >= '0' && fmtStr[1] <= '9')//amount of decimal places
             {
                 uint8_t maxDecimalPlaces = fmtStr[1] - '0';
-                for(;d < maxDecimalPlaces; ++d, decPart /= 10)
+                if (maxDecimalPlaces == 9)
+                    full = true;
+                else if (maxDecimalPlaces)
                 {
-                    auto digit = decPart % 10;
-                    intStr[n - ++d] = '0' + digit;
+                    uint32_t maxDecimalVal = 1;
+                    for(uint8_t i = 0; i < maxDecimalPlaces; ++i, maxDecimalVal *= 10);
+                    for(;(d < maxDecimalPlaces) && decPart; decPart /= 10)
+                    {
+                        if (decPart < maxDecimalVal)
+                        {
+                            auto digit = decPart % 10;
+                            intStr[n - ++d] = '0' + digit;
+                        }
+                    }
                 }
             }else
+                full = true;
+
+            if (full)
             {
                 while(decPart)
                 {
