@@ -2,7 +2,6 @@
 #define FORMATTER_H_
 #include <string_view>
 #include <expected>
-#include <concepts>
 
 extern "C" size_t strlen(const char *pStr);
 
@@ -370,7 +369,12 @@ namespace tools
         static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, std::expected<Value,Error> const& v) 
         { 
             if (v)
-                return formatter_t<Value>::format_to(std::forward<Dest>(dst), fmtStr, *v); 
+            {
+                if constexpr(!std::is_same_v<Value,void>)
+                    return formatter_t<Value>::format_to(std::forward<Dest>(dst), fmtStr, *v); 
+                else
+                    return 0;
+            }
             else
             {
                 dst(std::string_view("E:"));
