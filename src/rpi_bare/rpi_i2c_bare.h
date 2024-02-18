@@ -211,6 +211,13 @@ namespace rpi
         };
         using TransferResult = std::expected<uint16_t, Error>;
 
+        constexpr static uint32_t kI2CSysFreq = 150'000'000;
+        static uint16_t divider_from_frequency(uint32_t f)
+        {
+            uint32_t d = kI2CSysFreq / f;
+            return (uint16_t)d;
+        }
+
         template<class RPi, class pins = typename RPi::I2C1_Pins>
         struct I2C
         {
@@ -222,6 +229,7 @@ namespace rpi
             struct Init
             {
                 Init() { init(); configure_all(); }
+                Init(uint32_t freq) { init(); configure_all(divider_from_frequency(freq)); }
                 ~Init() { end(); }
             };
 
@@ -264,11 +272,11 @@ namespace rpi
                 __sync_synchronize();
             }
 
-            static void configure_all()
+            static void configure_all(uint16_t div = 0x5cd)
             {
                 clear_fifo();
                 DivReg d;
-                d.div = 0x5cd;//1500, 150MHz/1500 = 100KHz
+                d.div = div;//0x5cd;//1500, 150MHz/1500 = 100KHz
                 d.write_to(funcs::div_addr());
             }
 
