@@ -53,20 +53,6 @@ std::expected<size_t, tools::FormatError> format_value_to(Dest &&dst, std::strin
 
 extern "C" void kernel_main()
 {
-    //ConsoleOutput cons;
-    //tools::format_to(cons, "ADS:{.3}", 1.23456f);
-    //using SPI = rpi::RPiBplus::SPI1_Pins;
-    //constexpr auto CS = SPI::Chip::CS2;
-
-
-    /*I2C::Init i2cInit;
-    uint8_t xxx = 0;
-    auto wr = I2C::write(&xxx, 1);
-    if (wr.has_value())
-    {
-        //success
-    }*/
-
     Timer::TimeTest ttRpiInit;
     RPi::Init rpiInit;
     ttRpiInit.mark();
@@ -107,30 +93,31 @@ extern "C" void kernel_main()
     {
         I2C::Init i2cInit;
         ADS1115<I2C> ads1115;
-        if (ads1115.exists())
+        if (ads1115.exists()
+                && ads1115.set_measure_range_mode(ADS1115<I2C>::Config::get_pga_for_voltage(3.1f))
+                && ads1115.set_conversion_rate(ADS1115<I2C>::Config::Rate::Sps8)
+           )
         {
-            ads1115.set_measure_range_mode(ADS1115<I2C>::Config::get_pga_for_voltage(3.1f));
-            tools::format_to(to_display, "ADS:\n");
+            (void)tools::format_to(to_display, "ADS:\n");
             {
-                tools::format_to(to_display, "Cfg:{:x}\n", ads1115.get_config());
+                (void)tools::format_to(to_display, "Cfg:{:x}\n", ads1115.get_config());
                 r.show();
                 Timer::delay_ms(2000);
             }
             {
-                tools::format_to(to_display, "Lo:{:x}\n", ads1115.get_lo_threshold());
+                (void)tools::format_to(to_display, "Lo:{:x}\n", ads1115.get_lo_threshold());
                 r.show();
                 Timer::delay_ms(2000);
             }
             {
-                tools::format_to(to_display, "Hi:{:x}\n", ads1115.get_hi_threshold());
+                (void)tools::format_to(to_display, "Hi:{:x}\n", ads1115.get_hi_threshold());
                 r.show();
                 Timer::delay_ms(2000);
             }
 
-            ads1115.set_conversion_rate(ADS1115<I2C>::Config::Rate::Sps860);
             if (ads1115.run_continuous())
             {
-                tools::format_to(to_display, "Starting to\n measure");
+                (void)tools::format_to(to_display, "Starting to\n measure");
                 r.show();
                 Timer::TimeTest measureTime;
                 int updates = 0;
@@ -146,92 +133,30 @@ extern "C" void kernel_main()
                             lastMeasured = f;
                             r.clear();
                             to_display.p = {0,0};
-                            tools::format_to(to_display, "ADS:{:.3}v", lastMeasured);
+                            (void)tools::format_to(to_display, "ADS:{:.3}v", lastMeasured);
                             r.show();
                         }
                     }else
                     {
                         r.clear();
                         to_display.p = {0,0};
-                        tools::format_to(to_display, "Failed to read:\n{}", res);
+                        (void)tools::format_to(to_display, "Failed to read:\n{}", res);
                         r.show();
                     }
                 }
-                ads1115.stop_continuous();
+                if (auto res = ads1115.stop_continuous(); !res)
+                    (void)tools::format_to(to_display, "Failed to stop\n{}", res);
             }else
             {
-                tools::format_to(to_display, "ADS\nfailed to run\ncontinuous mode");
+                (void)tools::format_to(to_display, "ADS\nfailed to run\ncontinuous mode");
             }
         }else
         {
             //tools::format_to(to_display, "Test: {}\n", 1.5f);
-            tools::format_to(to_display, "Didn't find ADS\nat {}", (uint8_t)ads1115.get_addr());
+            (void)tools::format_to(to_display, "Didn't find ADS\nat {}", (uint8_t)ads1115.get_addr());
         }
     }
-    tools::format_to(to_display, "\nFinished");
-    r.show();
-    Timer::delay_ms(20000);
-
-    r.clear();
-    Timer::TimeTest ttPrint;
-     /*r.print_all({0,0}
-            , "Init:\n",
-            "RPI:",ttRpiInit.measured(),
-            "\nDispCTR:",ttCostructDisplayInit.measured(),
-            "\nDispGPIO:", ttDisplayGPIOInit.measured(),
-            "\nSPI:",ttSPIInit.measured(),
-            "\nDisp:",ttDisplayInit.measured(),
-            "\nFonts:",ttFontsInit.measured(),
-            "\nIcons:",ttIconsInit.measured()
-            );
-            */
-    auto syms = tools::format_to(to_display, 
-    "Init:"
-    "\nRPI:{}"
-    "\nDispCTR:{:x}"
-    "\nDispGPIO:{}"
-    "\nSPI:{:x}"
-    "\nDisp:{}"
-    "\nFonts:{:x}"
-    "\nIcons:{}"
-    , ttRpiInit.measured()
-    , (uint16_t)ttCostructDisplayInit.measured()
-    , ttDisplayGPIOInit.measured()
-    , (uint8_t)ttSPIInit.measured()
-    , ttDisplayInit.measured()
-    , (uint16_t)ttFontsInit.measured()
-    , ttIconsInit.measured()
-    );
-    ttPrint.mark();
-    /*r.render_symbol({0,0}, symTrizub, {5,2}, {7,9});
-    r.draw_char({10,0}, '0');
-    r.render_line({0, D::kDisplayHeight / 2}, {D::kDisplayWidth - 1, D::kDisplayHeight / 2});
-    r.render_line({D::kDisplayWidth / 2, 0}, {D::kDisplayWidth / 2, D::kDisplayHeight - 1});
-    r.render_line({0, 0}, {D::kDisplayWidth - 1, D::kDisplayHeight - 1});
-    r.render_line({0, D::kDisplayHeight - 1}, {D::kDisplayWidth - 1, 0});
-    */
-    r.show();
-    Timer::delay_ms(20000);
-    r.clear();
-    to_display.p = {0,0};
-    tools::format_to(to_display, "Prev printing took:\n{:x}us\n{} symbols printed", (uint16_t)ttPrint.measured(), syms);
-    //r.print_all({0,0} , "Previous printing took:\n" ,ttPrint.measured(), " us");
-    r.show();
-    Timer::delay_ms(20000);
-
-    for(uint8_t y = 1; y < 8; ++y)
-    {
-        r.clear_part(0, y - 1, 7, 9);
-        r.render_symbol({0,y}, symTrizub, {5,2}, {7,9});
-        r.draw_char({10,0}, '0' + y);
-        r.show();
-        //display::show_part(0, y, 7, 8);
-        Timer::delay_ms(3000);
-    }
-    r.draw_hex({0,0}, (uint32_t)(size_t)&kernel_main);
-    r.draw_hex({0,8}, (uint32_t)(size_t)&symTrizub);
-    r.draw_hex({0,16}, (uint32_t)(size_t)&d);
-    r.draw_str({0,24}, "Hello World!");
+    (void)tools::format_to(to_display, "\nFinished");
     r.show();
     Timer::delay_ms(20000);
 
