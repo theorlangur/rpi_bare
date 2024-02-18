@@ -91,7 +91,7 @@ extern "C" void kernel_main()
     auto to_display = display::DisplayFormatter{r, {0,0}};
     r.clear();
     {
-        I2C::Init i2cInit;
+        I2C::Init i2cInit(100'000);
         ADS1115<I2C> ads1115;
         if (ads1115.exists()
                 && ads1115.set_measure_range_mode(ADS1115<I2C>::Config::get_pga_for_voltage(3.1f))
