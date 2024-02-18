@@ -25,6 +25,7 @@ public:
         ReadReg = 6,
         ConfigContinuous = 7,
         UnexpectedMode = 8,
+        InvalidPin = 9,
     };
 
     struct Error
@@ -97,6 +98,13 @@ public:
             AIN_1_G = 5,
             AIN_2_G = 6,
             AIN_3_G = 7,
+        };
+        enum class Pin: uint8_t
+        {
+            A0 = 0,
+            A1 = 1,
+            A2 = 2,
+            A3 = 3,
         };
 
         Config() = default;
@@ -207,6 +215,37 @@ public:
         }
         return {};
     }
+
+    Config::Mux get_multiplexer() const
+    {
+        return m_Config.m_bits.mux;
+    }
+
+    GenericResult set_multiplexer(Config::Mux m)
+    {
+        m_Config.m_bits.mux = m;
+        if (m_Config.m_bits.conversion && m_Config.m_bits.mode == Config::Mode::Continuous)
+            //continuous running atm
+            //start again with new rate
+            return update_config();
+        return {};
+    }
+
+    //poisitive: 0,1,2,3; negative: GND
+    GenericResult select_pin_to_sample(Config::Pin p)
+    {
+        return set_multiplexer(Config::Mux(uint16_t(Config::Mux::AIN_0_G) + uint16_t(p)));
+    }
+
+    //poisitive: 0,1,2; negative: 3
+    GenericResult select_differential_pin_to_sample(Config::Pin p)
+    {
+        if (p < Config::Pin::A3)//A3 is not valid
+            return set_multiplexer(Config::Mux(uint16_t(Config::Mux::AIN_0_3) + uint16_t(p)));
+
+        return std::unexpected(Error{{},ErrorCode::InvalidPin});
+    }
+
 
     Config::PGA get_measure_range_mode() const
     {
