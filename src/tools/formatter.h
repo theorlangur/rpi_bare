@@ -567,6 +567,14 @@ namespace tools
         }
         return res;
     }
+
+    template<FormatDestination Dest, class... Args>
+    size_t format_to_silent(Dest &&dst, const char *pStr, Args &&...args)
+    {
+        if (auto r = format_to(std::forward<Dest>(dst), pStr, std::forward<Args>(args)...))
+                return *r;
+        return 0;
+    }
 }
 
 #endif
