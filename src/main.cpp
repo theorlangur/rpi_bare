@@ -98,26 +98,26 @@ extern "C" void kernel_main()
                 && ads1115.set_conversion_rate(ADS1115<I2C>::Config::Rate::Sps8)
            )
         {
-            (void)tools::format_to(to_display, "ADS:\n");
+            tools::format_to(to_display, "ADS:\n");
             {
-                (void)tools::format_to(to_display, "Cfg:{:x}\n", ads1115.get_config());
+                tools::format_to(to_display, "Cfg:{:x}\n", ads1115.get_config());
                 r.show();
                 Timer::delay_ms(2000);
             }
             {
-                (void)tools::format_to(to_display, "Lo:{:x}\n", ads1115.get_lo_threshold());
+                tools::format_to(to_display, "Lo:{:x}\n", ads1115.get_lo_threshold());
                 r.show();
                 Timer::delay_ms(2000);
             }
             {
-                (void)tools::format_to(to_display, "Hi:{:x}\n", ads1115.get_hi_threshold());
+                tools::format_to(to_display, "Hi:{:x}\n", ads1115.get_hi_threshold());
                 r.show();
                 Timer::delay_ms(2000);
             }
 
             if (ads1115.run_continuous())
             {
-                (void)tools::format_to(to_display, "Starting to\n measure");
+                tools::format_to(to_display, "Starting to\n measure");
                 r.show();
                 Timer::TimeTest measureTime;
                 int updates = 0;
@@ -133,30 +133,30 @@ extern "C" void kernel_main()
                             lastMeasured = f;
                             r.clear();
                             to_display.p = {0,0};
-                            (void)tools::format_to(to_display, "ADS:{:.3}v", lastMeasured);
+                            tools::format_to(to_display, "ADS:{:.3}v", lastMeasured);
                             r.show();
                         }
                     }else
                     {
                         r.clear();
                         to_display.p = {0,0};
-                        (void)tools::format_to(to_display, "Failed to read:\n{}", res);
+                        tools::format_to(to_display, "Failed to read:\n{}", res);
                         r.show();
                     }
                 }
                 if (auto res = ads1115.stop_continuous(); !res)
-                    (void)tools::format_to(to_display, "Failed to stop\n{}", res);
+                    tools::format_to(to_display, "Failed to stop\n{}", res);
             }else
             {
-                (void)tools::format_to(to_display, "ADS\nfailed to run\ncontinuous mode");
+                tools::format_to(to_display, "ADS\nfailed to run\ncontinuous mode");
             }
         }else
         {
             //tools::format_to(to_display, "Test: {}\n", 1.5f);
-            (void)tools::format_to(to_display, "Didn't find ADS\nat {}", (uint8_t)ads1115.get_addr());
+            tools::format_to(to_display, "Didn't find ADS\nat {}", (uint8_t)ads1115.get_addr());
         }
     }
-    (void)tools::format_to(to_display, "\nFinished");
+    tools::format_to(to_display, "\nFinished");
     r.show();
     Timer::delay_ms(20000);
 
